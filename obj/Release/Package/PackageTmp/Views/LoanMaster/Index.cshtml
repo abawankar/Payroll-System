@@ -1,0 +1,341 @@
+﻿@using WebPayroll.Helper
+@{
+    ViewBag.Title = "Loan Master";
+}
+<style>
+    input, select, textarea {
+        max-width: 180px;
+    }
+</style>
+
+<div class="panel panel-info topmar-10">
+    <div class="panel-heading">
+        @Html.MyActionLink("<span class='fa fa-dashboard fa-1x'> Dashboard</span>", "Dashboard", "Index", "Home", null, new { @class = "btn btn-info btn-sm" })
+        <div class="btn-group dropdown">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Quick Link
+                <span class="caret"></span>
+                <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu">
+                <li>@Html.MyActionLink("<span class='fa fa-user fa-1x'> Employee</span>", "Employee", "Index", "Employee", null, new { @class = "btn btn-link btn-sm" })</li>
+                <li>@Html.MyActionLink("<span class='fa fa-gear fa-1x'> Monthly Deduction</span>", "Process Monthly Deduction", "Index", "MonthlyDeduction", null, new { @class = "btn btn-link btn-sm " })</li>
+                <li>@Html.MyActionLink("<span class='fa fa-bar-chart fa-1x'> Loan Outstanding Report</span>", "Loan Outstanding Report", "LoanOutstandingReport", "LoanMaster", null, new { @class = "btn btn-link btn-sm" })</li>
+            </ul>
+        </div>
+        @Html.DropDownList("branch", new SelectList((ViewBag.branch) as SelectList, "Value", "Text"), "Select Branch", new { @class = "search-box" })
+        <input type="text" class="search-box font" id="search" placeholder="Search by" />
+        @Html.DropDownList("SearchFields", new SelectList((ViewBag.SearchFields) as SelectList, "Value", "Text"), new { @class = "search-box" })
+        <i title="search" id="searchbtn" class="fa fa-search btn btn-info"></i>
+    </div>
+    <div class="panel-body">
+        <div id="table"></div>
+    </div>
+</div>
+
+@*Filtering*@
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#branch").change(function (e) {
+            e.preventDefault();
+            $('#table').jtable('load', {
+                branch: $('#branch').val()
+            });
+        });
+
+        $('#searchbtn').click(function (e) {
+            var id = $('#branch').val();
+            if (id == 0) {
+                alert("Select branch first!");
+                return;
+            }
+            $('#table').jtable('load', {
+                branch: $('#branch').val(), field: $('#SearchFields').val(), search: $('#search').val()
+            });
+        });
+    });
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $('#table').jtable({
+            title: 'Loan Master',
+            paging: true,
+            pagesize: 3,
+            sorting: true,
+            defaultSorting: 'Name ASC',
+            actions: {
+                listAction: '@Url.Action("List")',
+                updateAction: '@Url.Action("Update")',
+                createAction: '@Url.Action("Create")'
+            },
+            fields: {
+                Id: {
+                    title: 'Id',
+                    width:'1%',
+                    key: true,
+                    create: false,
+                    edit: false,
+                    list: false
+                },
+                BranchId: {
+                    title: 'Branch',
+                    width: '2%',
+                    options: '@Url.Action("GetBranchNameOptions", "Branch")',
+                    edit: false,
+                    list:false
+                },
+                EmpId: {
+                    title: 'Employee',
+                    width: '4%',
+                    dependsOn: 'BranchId',
+                    options: function (data) {
+                        if (data.source == 'list') {
+                            return '/Employee/GetEmployeeOptions';
+                        }
+                        if (data.source == 'edit') {
+                            return '/Employee/GetEmployeeOptions';
+                        }
+                        return '/Employee/GetEmployeeByBran?branid=' + data.dependedValues.BranchId;
+                    }
+                },
+                LoanCode: {
+                    title: 'LoanCode',
+                    width: '1%',
+                    create: false,
+                    input: function (data) {
+                        return '<input type="text" readonly class="jtable-input-readonly" name="Loan Code" value="' + data.value + '"/>';
+                    }
+                },
+                Type: {
+                    title: 'Type',
+                    width: '1%',
+                    options: { "A": "Advance", "L": "Loan" }
+                },
+                Date: {
+                    title: 'Date',
+                    width: '2%',
+                    type: 'date',
+                    display: function (data) {
+                        if (data.record.Date != null)
+                            return moment(data.record.Date).format('DD/MM/YYYY')
+                    },
+                },
+                PaymentMode: {
+                    title: 'PaymentMode',
+                    width: '1%',
+                    options: { "BA": "Bank Transfer", "CA": "Cash", "CH": "Cheque", }
+                },
+                LoanAmount: {
+                    title: 'LoanAmount',
+                    width: '1%',
+                    list: false,
+                    edit: false,
+                },
+                CRAmount: {
+                    title: 'LoanAmount',
+                    width: '1%',
+                    edit: false,
+                    create: false,
+                },
+                CRTran: {
+                    title: 'Topup',
+                    width: '0.1%',
+                    sorting: false,
+                    create: false,
+                    edit: false,
+                    listClass: 'child-opener-image-column',
+                    listClass: 'text-center',
+                    display: function (data) {
+                        var $img = $('<i title="Loan CR Transaction" class="fa fa-plus fa-1x pointer text-primary"/>');
+                        $img.click(function () {
+                            $('#table').jtable('openChildTable', $img.closest('tr'),
+                            {
+                                title: data.record.LoanCode + " - Details",
+                                paging: false,
+                                pagesize: 3,
+                                sorting: false,
+                                actions: {
+                                    listAction: '@Url.Action("LoanCRList")?loanid=' + data.record.Id,
+                                    updateAction: '@Url.Action("LoanCRUpdate")',
+                                    createAction: '@Url.Action("LoanCRCreate")?loanid=' + data.record.Id,
+                                },
+                                fields: {
+                                    Id: {
+                                        title: 'Id',
+                                        width: '1%',
+                                        key: true,
+                                        create: false,
+                                        edit: false,
+                                        list: false
+                                    },
+                                    Date: {
+                                        title: 'Date',
+                                        width: '2%',
+                                        type: 'date',
+                                        display: function (data) {
+                                            if (data.record.Date != null)
+                                                return moment(data.record.Date).format('DD/MM/YYYY')
+                                        },
+                                    },
+                                    Amount: {
+                                        title: 'Amount',
+                                        width: '2%'
+                                    },
+                                    Comments: {
+                                        title: 'Comments',
+                                        width: '10%',
+                                        type: 'textarea',
+                                    },
+                                },
+                                formCreated: function (event, data) {
+                                    data.form.validationEngine();
+                                },
+                                formSubmitting: function (event, data) {
+                                    return data.form.validationEngine('validate');
+                                },
+                                formClosed: function (event, data) {
+                                    data.form.validationEngine('hide');
+                                    data.form.validationEngine('detach');
+                                }
+                            }, function (data) {
+                                data.childTable.jtable('load');
+                            });
+                        });
+                        return $img;
+                    }
+                },
+                BalanceAmount: {
+                    title: 'Balance',
+                    width: '1%',
+                    edit: false,
+                    create: false,
+                },
+                DRTran: {
+                    title: 'Paid',
+                    width: '0.1%',
+                    sorting: false,
+                    create: false,
+                    edit: false,
+                    listClass: 'child-opener-image-column',
+                    listClass:'text-center',
+                    display: function (data) {
+                        var $img = $('<i title="Loan DR Transaction" class="fa fa-minus fa-1x pointer text-primary"/>');
+                        $img.click(function () {
+                            $('#table').jtable('openChildTable', $img.closest('tr'),
+                            {
+                                title: data.record.LoanCode + " - Details",
+                                paging: false,
+                                pagesize: 3,
+                                sorting: false,
+                                actions: {
+                                    listAction: '@Url.Action("LoanDRList")?loanid=' + data.record.Id,
+                                    updateAction: '@Url.Action("LoanDRUpdate")',
+                                    createAction: '@Url.Action("LoanDRCreate")?loanid=' + data.record.Id,
+                                },
+                                fields: {
+                                    Id: {
+                                        title: 'Id',
+                                        width: '1%',
+                                        key: true,
+                                        create: false,
+                                        edit: false,
+                                        list: false
+                                    },
+                                    PaidBy: {
+                                        title: 'PaidBy',
+                                        width: '1%',
+                                        options: { "S": "Salary", "B": "BankTransfer", "C": "Cash" },
+                                        defaultValue: 'B',
+                                        edit: true
+                                    },
+                                    Amount: {
+                                        title: 'Amount',
+                                        width: '2%'
+                                    },
+                                    Date: {
+                                        title: 'Date',
+                                        width: '2%',
+                                        type: 'date',
+                                        display: function (data) {
+                                            if (data.record.Date != null)
+                                                return moment(data.record.Date).format('DD/MM/YYYY')
+                                        },
+                                    },
+                                    PaidMonth: {
+                                        title: 'PaidMonth',
+                                        width: '1%',
+                                        create:false,
+                                        edit: false
+                                    },
+                                    Comments: {
+                                        title: 'Comments',
+                                        width: '10%',
+                                        type: 'textarea',
+                                    },
+                                },
+                                formCreated: function (event, data) {
+                                    if (data.formType == 'edit') {
+                                        var PaidBy = data.form.find('select[name="PaidBy"]').val()
+                                        if (PaidBy == "S") {
+                                            $('#Edit-Amount').prop('readonly', true);
+                                            document.getElementById("Edit-PaidBy").disabled = true;
+                                        }
+                                    }
+                                    data.form.validationEngine();
+                                },
+                                formSubmitting: function (event, data) {
+                                    return data.form.validationEngine('validate');
+                                },
+                                formClosed: function (event, data) {
+                                    data.form.validationEngine('hide');
+                                    data.form.validationEngine('detach');
+                                }
+                            }, function (data) {
+                                data.childTable.jtable('load');
+                            });
+                        });
+                        return $img;
+                    }
+                },
+                DednFrom: {
+                    title: 'DednFrom',
+                    width: '2%',
+                    type: 'date',
+                    display: function (data) {
+                        if (data.record.DednFrom != null)
+                            return moment(data.record.DednFrom).format('DD/MM/YYYY')
+                    },
+                },
+                DednAmount: {
+                    title: 'DednAmount',
+                    width: '1%'
+                },
+                Comments: {
+                    title: 'Comments',
+                    width: '2%',
+                    type: 'textarea',
+                    visibility: 'hidden'
+                },
+            },
+            formCreated: function (event, data) {
+                if (data.formType == 'edit') {
+                    document.getElementById("Edit-EmpId").disabled = true;
+                }
+                
+                data.form.find('input[name="Loan Code"]').css({ 'background-color': '#e5e5e5' });
+                data.form.validationEngine();
+            },
+            formSubmitting: function (event, data) {
+                return data.form.validationEngine('validate');
+            },
+            formClosed: function (event, data) {
+                data.form.validationEngine('hide');
+                data.form.validationEngine('detach');
+            }
+        });
+        $('#table').jtable('load');
+    });
+</script>

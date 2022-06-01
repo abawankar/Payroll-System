@@ -1,0 +1,136 @@
+﻿@using WebPayroll.Helper
+@{
+    ViewBag.Title = "Branch Name";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    input, select, textarea {
+        max-width: 180px;
+    }
+</style>
+
+<div class="panel panel-info topmar-10">
+    <div class="panel-heading">
+        @Html.MyActionLink("<span class='fa fa-dashboard fa-1x'> LMS Dashboard</span>", "Dashboard", "Index", "Home", null, new { @class = "btn btn-info btn-sm" })
+        <div class="btn-group dropdown">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Quick Link
+                <span class="caret"></span>
+                <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu">
+                <li>@Html.MyActionLink("<span class='fa fa-calendar-o fa-1x'> Leave Type</span>", "Leave Type", "Index", "LeaveType", null, new { @class = "btn btn-link btn-sm " })</li>
+            </ul>
+        </div>
+
+        @Html.DropDownList("branch", new SelectList((ViewBag.branch) as SelectList, "Value", "Text"), "Select Branch", new { @class = "search-box" })
+        <input type="text" class="search-box font" id="search" placeholder="Search by name / year" />
+        <i title="search" id="searchbtn" class="fa fa-search btn btn-info"></i>
+    </div>
+    <div class="panel-body">
+        <div id="table"></div>
+    </div>
+</div>
+
+@*Filtering*@
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        //$("#branch").change(function (e) {
+        //    e.preventDefault();
+        //    $('#table').jtable('load', {
+        //        branch: $('#branch').val()
+        //    });
+        //});
+
+        $('#searchbtn').click(function (e) {
+            var id = $('#branch').val();
+            if (id == 0) {
+                alert("Select branch first!");
+                return;
+            }
+            $('#table').jtable('load', {
+                branch: $('#branch').val(), search: $('#search').val()
+            });
+        });
+    });
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $('#table').jtable({
+            title: 'Leave Opening Balance',
+            paging: true,
+            pagesize: 3,
+            sorting: true,
+            defaultSorting: 'Name ASC',
+            actions: {
+                listAction: '@Url.Action("List")',
+                updateAction: '@Url.Action("Update")',
+                createAction: '@Url.Action("Create")'
+            },
+            fields: {
+                Id: {
+                    title: 'Id',
+                    width:'1%',
+                    key: true,
+                    create: false,
+                    edit: false,
+                    list: false
+                },
+                BranchId: {
+                    title: 'Branch',
+                    width: '2%',
+                    options: '@Url.Action("GetBranchNameOptions", "Branch",new { area = string.Empty }, null)',
+                    edit: false,
+                },
+                 EmpId: {
+                    title: 'Employee',
+                    width: '2%',
+                    dependsOn: 'BranchId',
+                    options: function (data) {
+                        if (data.source == 'list') {
+                            return '/Employee/GetEmployeeOptions';
+                        }
+                        if (data.source == 'edit') {
+                            return '/Employee/GetEmployeeOptions';
+                        }
+                        return '/Employee/GetEmployeeByBran?branid=' + data.dependedValues.BranchId;
+                    }
+                },
+                LeaveTypeId: {
+                    title: 'LeaveType',
+                    width: '3%',
+                    options: '@Url.Action("GetLeaveTypeOptions", "LeaveType")',
+                },
+                Year: {
+                    title: 'Year',
+                    width: '1%',
+                },
+                BalanceLeave: {
+                    title: 'BalanceLeave',
+                    width: '1%',
+                },
+            },
+            formCreated: function (event, data) {
+                if (data.formType == 'edit') {
+                    document.getElementById("Edit-EmpId").disabled = true;
+                }
+                if (data.formType == 'create') {
+                    var year = getCurrentYear();
+                    $("#Edit-Year").val(year);
+                }
+                data.form.validationEngine();
+            },
+            formSubmitting: function (event, data) {
+                return data.form.validationEngine('validate');
+            },
+            formClosed: function (event, data) {
+                data.form.validationEngine('hide');
+                data.form.validationEngine('detach');
+            }
+        });
+        $('#table').jtable('load');
+    });
+</script>

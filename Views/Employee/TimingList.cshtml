@@ -1,0 +1,56 @@
+﻿@model IEnumerable<WebPayroll.Areas.LMS.Models.MonthlyAttendanceModel>
+
+@{
+    ViewBag.Title = "TimingList";
+}
+
+<style type="text/css">
+    .main {
+        font-family: Arial,Verdana,sans-serif;
+        font-size: 0.7em;
+    }
+</style>
+<table class="main table table-bordered table-responsive table-sm m-0 border-info">
+    <thead class="bg-info text-center text-light">
+        <tr>
+            @foreach(var d in ViewBag.cal)
+            {
+                <th class="text-center">
+                    @d.Day <br /> @d.ToString("ddd")
+                </th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            <tr>
+                @foreach (var d in ViewBag.cal)
+                {
+                            var l = Model.Where(x => x.Days == d.Day).SingleOrDefault();
+                            if(l != null)
+                            {
+                                <td class="text-center bg-red">
+                                    <label>@l.LeaveType</label>
+                                </td>
+                    }
+                    else
+                    {
+                        if (d >= System.DateTime.Today)
+                        {
+                            <td class="text-center">                                
+                            </td>
+                        }
+                        else
+                        {
+                            <td class="text-center">
+                                <label>P</label>
+                            </td>
+                        }
+
+                    }
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+

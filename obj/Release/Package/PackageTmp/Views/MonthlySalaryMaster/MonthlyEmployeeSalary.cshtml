@@ -1,0 +1,206 @@
+﻿@using WebPayroll.Helper
+@{
+    ViewBag.Title = "Monthly Employee Salary";
+}
+<style>
+    input, select, textarea {
+        max-width: 180px;
+    }
+</style>
+
+<div class="panel panel-info topmar-10">
+    <div class="panel-heading">
+        @Html.MyActionLink("<span class='fa fa-dashboard fa-1x'> Dashboard</span>", "Dashboard", "Index", "Home", null, new { @class = "btn btn-info btn-sm" })
+
+        <div class="btn-group dropdown">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Quick Link
+                <span class="caret"></span>
+                <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu">
+                <li>@Html.MyActionLink("<span class='fa fa-gear fa-1x'> Monthly Deduction</span>", "Process Monthly Deduction", "Index", "MonthlyDeduction", null, new { @class = "btn btn-link btn-sm btn-mar" })</li>
+                <li>@Html.MyActionLink("<span class='fa fa-briefcase fa-1x'> Prepare Salary</span>", "Prepare Monthly Salary", "Index", "DraftMonthlySalary", null, new { @class = "btn btn-link btn-sm btn-mar" })</li>
+                <li>@Html.MyActionLink("<span class='fa fa-envelope-open fa-1x'> View Draft Salary</span>", "View Draft Monthly Salary", "ViewDraftSalary", "DraftMonthlySalary", null, new { @class = "btn btn-link btn-sm btn-mar" })</li>
+                <li>@Html.MyActionLink("<span class='fa fa-envelope fa-1x'> View Monthly Salary</span>", "View Monthly Salary", "Index", "MonthlySalaryMaster", null, new { @class = "btn btn-link btn-sm btn-mar" })</li>
+            </ul>
+        </div>
+
+        @Html.DropDownList("branch", new SelectList((ViewBag.branch) as SelectList, "Value", "Text"), "Select Branch", new { @class = "search-box" })
+        <input type="text" class="search-box font" id="search" placeholder="Search by name" />
+        <i title="search" id="searchbtn" class="fa fa-search btn btn-info"></i>
+        <i title="Refresh" id="refreshbtn" class="fa fa-refresh fa-1x btn btn-link pull-right"></i>
+    </div>
+    <div class="panel-body">
+        <div id="table"></div>
+    </div>
+</div>
+
+
+@*Filtering*@
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $('#searchbtn').click(function (e) {
+            $('#table').jtable('load', {
+                branch: $('#branch').val(), search: $('#search').val()
+            });
+        });
+
+        $('#refreshbtn').click(function (e) {
+            $('#search').val('');
+            $('#branch').val('');
+            $('#months').val('');
+            $('#table').jtable('load');
+        });
+
+    });
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $('#table').jtable({
+            title: 'Monthly Employee Salary',
+            paging: true,
+            pagesize: 3,
+            sorting: false,
+            defaultSorting: 'Name ASC',
+            actions: {
+                listAction: '@Url.Action("EmployeeSalaryList")',
+            },
+            fields: {
+                Id: {
+                    title: 'Id',
+                    width:'1%',
+                    key: true,
+                    create: false,
+                    edit: false,
+                    list: false
+                },
+                BranchId: {
+                    title: 'Branch',
+                    width: '1%',
+                    options: '@Url.Action("GetBranchOptions", "Branch")',
+                },
+                MonthYear: {
+                    title: 'MonthYear',
+                    width: '0.5%',
+                },
+                EmpId: {
+                    title: 'Employee',
+                    width: '4%',
+                    options: '@Url.Action("GetEmployeeOptions", "Employee")',
+                },
+                Basic: {
+                    title: 'Basic',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                DA: {
+                    title: 'DA',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                HRA: {
+                    title: 'HRA',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                Conveyance: {
+                    title: 'Conveyance',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                Medical: {
+                    title: 'Medical',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                LTA: {
+                    title: 'LTA',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                Special: {
+                    title: 'Special',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                GrossSalary: {
+                    title: 'GrossSalary',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                PF: {
+                    title: 'PF',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                VPF: {
+                    title: 'VPF',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                ESI: {
+                    title: 'ESI',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                TDS: {
+                    title: 'TDS',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                LoanAmount: {
+                    title: 'LoanAmount',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                NetDedn: {
+                    title: 'NetDeduction',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                Arrear: {
+                    title: 'Arrear',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                NetSalary: {
+                    title: 'NetSalary',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                PaidDays: {
+                    title: 'PaidDays',
+                    width: '0.1%',
+                    listClass: 'text-right'
+                },
+                PaySlip: {
+                    title: 'PaySlip',
+                    width: '0.5%',
+                    listClass: 'text-center',
+                    display: function (data) {
+                        var $img = $('<i title="Genrate Salary Slip" class="fa fa-file-pdf-o fa-2x pointer redico"/>');
+                        $img.click(function () {
+                            url = "/MonthlySalaryMaster/GenratePaySlip?id=" + data.record.Id;
+                            window.open(url);
+                        });
+                        return $img;
+                    }
+                },
+            },
+            formCreated: function (event, data) {
+                data.form.validationEngine();
+            },
+            formSubmitting: function (event, data) {
+                return data.form.validationEngine('validate');
+            },
+            formClosed: function (event, data) {
+                data.form.validationEngine('hide');
+                data.form.validationEngine('detach');
+            }
+        });
+    });
+</script>

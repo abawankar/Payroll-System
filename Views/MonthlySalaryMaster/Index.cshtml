@@ -1,0 +1,530 @@
+﻿@using WebPayroll.Helper
+@{
+    ViewBag.Title = "View Salary";
+}
+
+<style>
+    input, select, textarea {
+        max-width: 180px;
+    }
+</style>
+
+<div class="panel panel-info topmar-10">
+    <div class="panel-heading">
+        @Html.MyActionLink("<span class='fa fa-dashboard fa-1x'> Dashboard</span>", "Dashboard", "Index", "Home", null, new { @class = "btn btn-info btn-sm" })
+
+        <div class="btn-group dropdown">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Quick Link
+                <span class="caret"></span>
+                <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu">
+                <li>@Html.MyActionLink("<span class='fa fa-gear fa-1x'> Monthly Deduction</span>", "Process Monthly Deduction", "Index", "MonthlyDeduction", null, new { @class = "btn btn-link btn-sm btn-mar" })</li>
+                <li>@Html.MyActionLink("<span class='fa fa-briefcase fa-1x'> Prepare Salary</span>", "Prepare Monthly Salary", "Index", "DraftMonthlySalary", null, new { @class = "btn btn-link btn-sm btn-mar" })</li>
+                <li>@Html.MyActionLink("<span class='fa fa-envelope-open fa-1x'> View Draft Salary</span>", "View Draft Monthly Salary", "ViewDraftSalary", "DraftMonthlySalary", null, new { @class = "btn btn-link btn-sm btn-mar" })</li>
+            </ul>
+        </div>
+
+        <i title="Refresh" id="refreshbtn" class="fa fa-refresh fa-1x btn btn-link pull-right"></i>
+    </div>
+    <div class="panel-body">
+        <div id="table"></div>
+        <input type="file" id="Uploaddox" multiple style="display:none" />
+    </div>
+</div>
+
+
+@*Filtering*@
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $('#refreshbtn').click(function (e) {
+            $('#table').jtable('load');
+        });
+
+        $("#save").click(function (e) {
+            e.preventDefault();
+
+            var strconfirm = confirm("Are you sure you want to process?");
+            if (strconfirm == true) {
+                $('#load1').show();
+                var month = $("#months").val();
+                $.ajax({
+                    url: "/DraftMonthlySalary/SaveDraft",
+                    type: "POST",
+                    datatype: 'JSON',
+                    data: { month: month },
+                    success: function (response) {
+                        //code after success
+                        $('#save').hide();
+                        $('#months').hide();
+                        $('#branch').val('')
+                        alert(response);
+                        $('#table').jtable('load');
+                    },
+                    error: function (er) {
+                        alert(er);
+                    }
+                });
+            }
+        });
+    });
+</script>
+
+@*Footer table*@
+<script type="text/javascript">
+    $(document).ready(function () {
+        var month = $('#months').val();
+        $('#table').jtable({
+            title: 'Monthly Salary',
+            paging: true,
+            pagesize: 3,
+            sorting: false,
+            defaultSorting: 'Name ASC',
+            actions: {
+                listAction: '@Url.Action("List")',
+                updateAction: '@Url.Action("Update")',
+            },
+            fields: {
+                Id: {
+                    title: 'Id',
+                    width:'1%',
+                    key: true,
+                    create: false,
+                    edit: false,
+                    list: false
+                },
+                BranchId: {
+                    title: 'Branch',
+                    width: '1%',
+                    options: '@Url.Action("GetBranchOptions", "Branch")',
+                    edit: false,
+                },
+                MonthYear: {
+                    title: 'MonthYear',
+                    width: '1%',
+                    edit: false,
+                },
+                NoOfEmp: {
+                    title: 'NoOfEmp',
+                    width: '0.1%',
+                    listClass: 'text-center',
+                    edit: false,
+                },
+                GrossSalary: {
+                    title: 'GrossSalary',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                PF: {
+                    title: 'PF',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                VPF: {
+                    title: 'VPF',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                ESI: {
+                    title: 'ESI',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                TDS: {
+                    title: 'TDS',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                LoanAmount: {
+                    title: 'LoanAmount',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                NetDedn: {
+                    title: 'NetDeduction',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                Arrear: {
+                    title: 'Arrear',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                NetSalary: {
+                    title: 'NetSalary',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                Cheque: {
+                    title: 'Cheque',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                Date: {
+                    title: 'Date',
+                    width: '1%',
+                    type: 'date',
+                    listClass: 'text-right',
+                    display: function (data) {
+                        if (data.record.Date != null)
+                            return moment(data.record.Date).format('DD/MM/YYYY')
+                    },
+                },
+                Details: {
+                    title: '',
+                    width: '0.1%',
+                    sorting: false,
+                    create: false,
+                    edit: false,
+                    listClass: 'child-opener-image-column',
+                    display: function (data) {
+                        var $img = $('<i title="View All Employee" class="fa fa-list-ul fa-1x pointer text-primary"/>');
+                        $img.click(function () {
+                            $('#table').jtable('openChildTable', $img.closest('tr'),
+                            {
+                                title: data.record.MonthYear + " - Details",
+                                paging: true,
+                                pagesize: 3,
+                                sorting: false,
+                                actions: {
+                                    listAction: '@Url.Action("SalaryDetails")?id=' + data.record.Id,
+                                },
+                                fields: {
+                                    Id: {
+                                        title: 'Id',
+                                        width: '1%',
+                                        key: true,
+                                        create: false,
+                                        edit: false,
+                                        list: false
+                                    },
+                                    EmpId: {
+                                        title: 'Employee',
+                                        width: '4%',
+                                        options: '@Url.Action("GetEmployeeOptions", "Employee")',
+                                        edit: false,
+                                    },
+                                    Basic: {
+                                        title: 'Basic',
+                                        width: '1%',
+                                        edit: false,
+                                        listClass: 'text-right'
+                                    },
+                                    HRA: {
+                                        title: 'HRA',
+                                        width: '1%',
+                                        edit: false,
+                                        listClass: 'text-right'
+                                    },
+                                    EduAllowance: {
+                                        title: 'EduAllowance',
+                                        width: '1%',
+                                        edit: false,
+                                        listClass: 'text-right'
+                                    },
+                                    TelephoneReimb: {
+                                        title: 'TelephoneReimb',
+                                        width: '1%',
+                                        edit: false,
+                                        listClass: 'text-right'
+                                    },
+                                    SatutoryBonus: {
+                                        title: 'SatutoryBonus',
+                                        width: '1%',
+                                        edit: false,
+                                        listClass: 'text-right'
+                                    },
+                                    CarRunningReimb: {
+                                        title: 'CarRunningReimb',
+                                        width: '1%',
+                                        edit: false,
+                                        listClass: 'text-right'
+                                    },
+                                    OtherAllowance: {
+                                        title: 'OtherAllowance',
+                                        width: '1%',
+                                        edit: false,
+                                        listClass: 'text-right'
+                                    },
+                                    Conveyance: {
+                                        title: 'Conveyance',
+                                        width: '1%',
+                                        edit: false,
+                                        listClass: 'text-right'
+                                    },
+                                    Medical: {
+                                        title: 'Medical',
+                                        width: '1%',
+                                        edit: false,
+                                        listClass: 'text-right'
+                                    },
+                                    GrossSalary: {
+                                        title: 'GrossSalary',
+                                        width: '1%',
+                                        edit: false,
+                                        listClass: 'text-right'
+                                    },
+                                    PF: {
+                                        title: 'PF',
+                                        width: '1%',
+                                        edit: false,
+                                        listClass: 'text-right'
+                                    },
+                                    VPF: {
+                                        title: 'VPF',
+                                        width: '1%',
+                                        edit: false,
+                                        listClass: 'text-right'
+                                    },
+                                    ESI: {
+                                        title: 'ESI',
+                                        width: '1%',
+                                        edit: false,
+                                        listClass: 'text-right'
+                                    },
+                                    TDS: {
+                                        title: 'TDS',
+                                        width: '1%',
+                                        edit: false,
+                                        listClass: 'text-right'
+                                    },
+                                    LoanAmount: {
+                                        title: 'LoanAmount',
+                                        width: '1%',
+                                        edit: false,
+                                        listClass: 'text-right'
+                                    },
+                                    NetDedn: {
+                                        title: 'NetDeduction',
+                                        width: '1%',
+                                        edit: false,
+                                        listClass: 'text-right'
+                                    },
+                                    Arrear: {
+                                        title: 'Arrear',
+                                        width: '0.1%',
+                                        sorting: false,
+                                        listClass: 'text-right',
+                                        create: false,
+                                        edit: false,
+                                        listClass: 'child-opener-image-column',
+                                        display: function (data) {
+                                            var $img = $('<i title="Arrear Amount" class="pointer text-primary">' + data.record.Arrear + '</i>');
+                                            $img.click(function () {
+                                                $('#table').jtable('openChildTable', $img.closest('tr'),
+                                                {
+                                                    title: data.record.MonthYear + " - Arrear Details",
+                                                    paging: false,
+                                                    pagesize: 3,
+                                                    sorting: false,
+                                                    actions: {
+                                                        listAction: '@Url.Action("ArrearDetails")?id=' + data.record.Id,
+                                                        createAction: '@Url.Action("AddArrear")?id=' + data.record.Id,
+                                                        updateAction: '@Url.Action("UpdateArrear")',
+                                                        deleteAction: '@Url.Action("DeleteArrear")',
+                                                    },
+                                                    fields: {
+                                                        Id: {
+                                                            title: 'Id',
+                                                            width: '1%',
+                                                            key: true,
+                                                            create: false,
+                                                            edit: false,
+                                                            list: false
+                                                        },
+                                                        MonthYear: {
+                                                            title: 'MonthYear',
+                                                        },
+                                                        Basic: {
+                                                            title: 'Basic',
+                                                            listClass: 'text-right'
+                                                        },
+                                                        HRA: {
+                                                            title: 'HRA',
+                                                            listClass: 'text-right'
+                                                        },
+                                                        Conveyance: {
+                                                            title: 'Conveyance',
+                                                            listClass: 'text-right'
+                                                        },
+                                                        Medical: {
+                                                            title: 'Medical',
+                                                            listClass: 'text-right'
+                                                        },
+                                                        GrossSalary: {
+                                                            title: 'GrossSalary',
+                                                            edit: false,
+                                                            create:false,
+                                                            listClass: 'text-right'
+                                                        },
+                                                        PF: {
+                                                            title: 'PF',
+                                                            listClass: 'text-right'
+                                                        },
+                                                        ESI: {
+                                                            title: 'ESI',
+                                                            listClass: 'text-right'
+                                                        },
+                                                        NetSalary: {
+                                                            title: 'NetSalary',
+                                                            edit: false,
+                                                            create: false,
+                                                            listClass: 'text-right'
+                                                        },
+                                                    },
+                                                    formCreated: function (event, data) {
+                                                        data.form.validationEngine();
+                                                    },
+                                                    formSubmitting: function (event, data) {
+                                                        return data.form.validationEngine('validate');
+                                                    },
+                                                    formClosed: function (event, data) {
+                                                        data.form.validationEngine('hide');
+                                                        data.form.validationEngine('detach');
+                                                    }
+                                                }, function (data) {
+                                                    data.childTable.jtable('load');
+                                                });
+                                            });
+                                            return $img;
+                                        }
+                                    },
+                                    NetSalary: {
+                                        title: 'NetSalary',
+                                        width: '1%',
+                                        edit: false,
+                                        listClass: 'text-right'
+                                    },
+                                    PaidDays: {
+                                        title: 'PaidDays',
+                                        width: '0.1%',
+                                        listClass: 'text-right'
+                                    },
+                                },
+                                toolbar: {
+                                    items: [{
+                                        icon: '/Content/themes/base/images/xls.png',
+                                        text: 'GenrateArrearFile',
+                                        click: function () {
+                                            var url = "MonthlySalaryMaster/GenrateArrearFile?Id=" + data.record.Id;
+                                            window.open(url);
+                                        }
+                                    },
+                                    {
+                                        icon: '/Content/themes/base/images/bulk.png',
+                                        text: 'UploadArrearFile',
+                                        click: function () {
+                                            $("#Uploaddox").trigger('click');
+                                        }
+                                    }
+                                    ]
+                                },
+                                formCreated: function (event, data) {
+                                    data.form.validationEngine();
+                                },
+                                formSubmitting: function (event, data) {
+                                    return data.form.validationEngine('validate');
+                                },
+                                formClosed: function (event, data) {
+                                    data.form.validationEngine('hide');
+                                    data.form.validationEngine('detach');
+                                }
+                            }, function (data) {
+                                data.childTable.jtable('load');
+                            });
+                        });
+                        return $img;
+                    }
+                },
+                Export: {
+                    title: '',
+                    edit: false,
+                    width: '0.5%',
+                    listClass: 'text-center',
+                    display: function (data) {
+                        var $img = $('<i title="Export to excel" class="fa fa-file-excel-o fa-1x pointer greenico"/>');
+                        $img.click(function () {
+                            url = "/MonthlySalaryMaster/ECRxls?id=" + data.record.Id,
+                            window.open(url);
+                        });
+                        return $img;
+                    }
+                },
+                BankLetter: {
+                    title: '',
+                    edit: false,
+                    width: '0.5%',
+                    listClass: 'text-center',
+                    display: function (data) {
+                        var $img = $('<i title="BankLetter" class="fa fa-file-pdf-o fa-1x pointer text-danger"/>');
+                        $img.click(function () {
+                            url = "MonthlySalaryMaster/GenerateBankLetter?id=" + data.record.Id,
+                            window.open(url);
+                        });
+                        return $img;
+                    }
+                },
+                BulkTransfer: {
+                    title: '',
+                    edit: false,
+                    width: '0.5%',
+                    listClass: 'text-center',
+                    display: function (data) {
+                        var $img = $('<i title="BulkTransfer" class="fa fa-file-excel-o fa-1x pointer text-danger"/>');
+                        $img.click(function () {
+                            url = "MonthlySalaryMaster/ExportBankLetter?id=" + data.record.Id,
+                            window.open(url);
+                        });
+                        return $img;
+                    }
+                },
+            },
+        });
+        $('#table').jtable('load');
+    });
+</script>
+
+<script type="text/javascript">
+
+    $("#Uploaddox").change(function () {
+        $('#load').show();
+        var data = new FormData();
+        var files = $("#Uploaddox").get(0).files;
+        if (files.length > 0) {
+            for (i = 0; i < files.length; i++) {
+                data.append("MyImages"+i,files[i]);
+            }
+        }
+        else {
+            alert("Select File to upload");
+            return;
+        }
+        $.ajax({
+            url: "/MonthlySalaryMaster/UploadFile",
+            type: "POST",
+            processData: false,
+            contentType: false,
+            data: data,
+            success: function (response) {
+                //code after success
+                $('#load').hide();
+                alert(response);
+            },
+            error: function (er) {
+                alert(er);
+            }
+
+        });
+    });
+</script>

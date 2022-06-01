@@ -1,0 +1,147 @@
+﻿@using WebPayroll.Helper
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    input, select, textarea {
+        max-width: 180px;
+    }
+</style>
+
+<div class="panel panel-info topmar-10">
+    <div class="panel-heading">
+        @Html.MyActionLink("<span class='fa fa-dashboard fa-1x'> LMS Dashboard</span>", "Dashboard", "Index", "Home", null, new { @class = "btn btn-info btn-sm" })
+        @Html.DropDownList("branch", new SelectList((ViewBag.branch) as SelectList, "Value", "Text"), "Select Branch", new { @class = "search-box" })
+        @Html.DropDownList("year", new SelectList((ViewBag.year) as SelectList, "Value", "Text"), "Select Year", new { @class = "search-box" })
+        <input type="text" class="search-box font" id="search" placeholder="Search by name" />
+        <i title="search" id="searchbtn" class="fa fa-search btn btn-info"></i>
+
+        @Html.DropDownList("month", new SelectList((ViewBag.month) as SelectList, "Value", "Text"), "Select Month", new { @class = "search-box" })
+        <i title="Export Attendance" id="expAtt" class="fa fa-file-excel-o btn btn-primary"></i>
+
+        <i title="Refresh" id="refreshbtn" class="fa fa-refresh fa-1x btn btn-link pull-right"></i>
+    </div>
+    <div class="panel-body">
+        <div id="table"></div>
+    </div>
+</div>
+
+@*Filtering*@
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#branch").change(function (e) {
+            e.preventDefault();
+            $('#table').jtable('load', {
+                branch: $('#branch').val()
+            });
+        });
+
+        $('#expAtt').click(function (e) {
+            var branch = $('#branch').val();
+            var month = $('#month').val();
+            var year = $('#year').val();
+            window.location.href = "LeaveDetails/ExportAttendance?branch=" + branch + "&month=" + month + "&year=" + year;
+        });
+
+        $('#searchbtn').click(function (e) {
+            var id = $('#branch').val();
+            if (id == 0) {
+                alert("Select branch first!");
+                return;
+            }
+            $('#table').jtable('load', {
+                branch: $('#branch').val(),yr: $('#year').val(), search: $('#search').val()
+            });
+        });
+
+        $("#refreshbtn").click(function (e) {
+            $('#year').val('')
+            $('#search').val('')
+            $('#branch').val('')
+            e.preventDefault();
+        });
+
+    });
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#table').jtable({
+            title: 'Monthly Attendance',
+            paging: true,
+            pagesize: 3,
+            sorting: false,
+            defaultSorting: 'Name ASC',
+            actions: {
+                listAction: '@Url.Action("List")',
+                updateAction: '@Url.Action("Update")',
+                createAction: '@Url.Action("Create")'
+            },
+            fields: {
+                Id: {
+                    title: 'Id',
+                    width: '1%',
+                    key: true,
+                    create: false,
+                    edit: false,
+                    list: false
+                },
+                BranchId: {
+                    title: 'Branch',
+                    width: '1%',
+                    options: '@Url.Action("GetBranchNameOptions", "Branch",new { area = string.Empty }, null)',
+                    edit: false,
+                },
+                EmpId: {
+                    title: 'Employee',
+                    width: '4%',
+                    dependsOn: 'BranchId',
+                    edit: false,
+                    options: function (data) {
+                        if (data.source == 'list') {
+                            return 'MonthlyAttendance/GetEmployeeOptions?id=0';
+                        }
+                        return 'MonthlyAttendance/GetEmployeeOptions?id=' + data.dependedValues.BranchId;
+                    },
+                },
+                Year: {
+                    title: 'Year',
+                    width: '0.2%',
+                    create: false,
+                    edit: false,
+                },
+                Date: {
+                    title: 'Date',
+                    width: '0.2%',
+                    type: 'date',
+                    listClass: 'text-right',
+                    display: function (data) {
+                        if (data.record.Date != null)
+                            return moment(data.record.Date).format('DD/MMM/YYYY')
+                    },
+                },
+                LeaveType: {
+                    title: 'Type',
+                    width: '0.2%',
+                    options: { "A": "Absance", "L": "Leave", "S": "Sick Leave" },
+                },
+            },
+            formCreated: function (event, data) {
+                data.form.validationEngine();
+            },
+            formSubmitting: function (event, data) {
+                return data.form.validationEngine('validate');
+            },
+            formClosed: function (event, data) {
+                data.form.validationEngine('hide');
+                data.form.validationEngine('detach');
+            }
+        });
+    });
+</script>
+
+
+
+

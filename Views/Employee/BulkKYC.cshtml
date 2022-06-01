@@ -1,0 +1,195 @@
+﻿
+@using WebPayroll.Helper
+@{
+    ViewBag.Title = "Bulk Upload - KYC";
+}
+
+<div class="panel panel-info topmar-10">
+    <div class="panel-heading">
+        @Html.MyActionLink("<span class='fa fa-dashboard fa-1x'> Dashboard</span> ", "Dashboard", "Index", "Home", null, new { @class = "btn btn-info btn-sm" })
+        @Html.MyActionLink("<span class='fa fa-user fa-1x'> Employee</span>", "Employee", "Index", "Employee", null, new { @class = "btn btn-info btn-sm" })
+        <button id="upload" type="button" class="btn btn-info btn-sm">
+            <span class="fa fa-upload fa-1x"> Select CSV File</span> 
+            <span id="load" class="fa fa-spin fa-spinner"></span>
+        </button>
+
+        <button id="save" type="button" style="display:none" class="btn btn-success btn-sm">
+            <span class="fa fa-floppy-o"></span> Save
+            <span id="load1" class="fa fa-spin fa-spinner"></span>
+        </button>
+
+        <i title="Genrate KYC template tile" id="help" class="fa fa-question btn btn-success pull-right"> Genrate Help File</i>
+
+        @if (TempData["Message"] != null)
+        {
+            <div id="message" class="success"> @TempData["Message"] </div>
+        }
+    </div>
+    <div class="panel-body">
+        <input type="file" id="UploadImg" multiple style="display:none" />
+        <div id="dialog-file" style="display: none"> </div>
+        <div id="table" class="table-responsive"></div>
+    </div>
+</div>
+
+@*Filtering*@
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $('#help').click(function (e) {
+            var url = "/Employee/GenrateFile"
+            window.open(url);
+            e.preventDefault();
+        });
+    });
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#load').hide();
+        $('#load1').hide();
+        $("#message").fadeIn("Slow").delay(2000).fadeOut("Slow");
+
+        $('#table').jtable({
+            title: 'Draft Employee KYC',
+            paging: false,
+            pagesize: 3,
+            sorting: false,
+            defaultSorting: 'Name ASC',
+            actions: {
+                listAction: '@Url.Action("BulkList")',
+            },
+            fields: {
+                Id: {
+                    title: 'Id',
+                    width: '1%',
+                    key: true,
+                    create: false,
+                    edit: false,
+                    list: false
+                },
+                EmpId: {
+                    title: 'Employee',
+                    width: '3%',
+                    options: '@Url.Action("GetEmployeeOptions", "Employee")',
+                },
+                DoxType: {
+                    title: 'DoxType',
+                    width: '4%',
+                    options: '@Url.Action("GetKYCdoxtype", "Employee")',
+                },
+                NameonDox: {
+                    title: 'NameonDox',
+                    width: '4%'
+                },
+                DocumentNumber: {
+                    title: 'DocumentNumber',
+                    width: '4%'
+                },
+                Other: {
+                    title: 'Other',
+                    width: '4%'
+                },
+                IssueDate: {
+                    title: 'IssueDate',
+                    width: '2%',
+                    type: 'date',
+                    display: function (data) {
+                        if (data.record.IssueDate != null)
+                            return moment(data.record.IssueDate).format('DD/MMM/YYYY')
+                    },
+                },
+                Exipiry: {
+                    title: 'Exipiry',
+                    width: '2%',
+                    type: 'date',
+                    display: function (data) {
+                        if (data.record.Exipiry != null)
+                            return moment(data.record.Exipiry).format('DD/MMM/YYYY')
+                    },
+                },
+                Place: {
+                    title: 'PlaceOfIssue',
+                    width: '4%'
+                },
+            },
+            formCreated: function (event, data) {
+                data.form.validationEngine();
+            },
+            formSubmitting: function (event, data) {
+                return data.form.validationEngine('validate');
+            },
+            formClosed: function (event, data) {
+                data.form.validationEngine('hide');
+                data.form.validationEngine('detach');
+            }
+        });
+
+        $("#upload").click(function (e) {
+            e.preventDefault();
+            var id = $("#comp").val();
+            if (id == "") {
+                alert("Please select Company First!");
+                return;
+            }
+            $("#UploadImg").trigger('click');
+        });
+
+
+        $("#save").click(function (e) {
+            e.preventDefault();
+            $('#load1').show();
+            $.ajax({
+                url: "/Employee/SaveBulk",
+                type: "POST",
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    //code after success
+                    $('#save').hide();
+                    $('#table').jtable('load');
+                    alert(response);
+                    $('#load1').hide();
+                },
+                error: function (er) {
+                    alert(er);
+                }
+
+            });
+        });
+    });
+</script>
+
+<script type="text/javascript">
+
+    $("#UploadImg").change(function () {
+        $('#load').show();
+        var data = new FormData();
+        var files = $("#UploadImg").get(0).files;
+        if (files.length > 0) {
+            for (i = 0; i < files.length; i++) {
+                data.append("MyImages"+i,files[i]);
+            }
+        }
+        //data.append("compid", $("#comp").val());
+        $.ajax({
+            url: "/Employee/UploadFile",
+            type: "POST",
+            processData: false,
+            contentType: false,
+            data: data,
+            success: function (response) {
+                //code after success
+                $('#table').jtable('load');
+                $('#load').hide();
+                $('#save').show();
+                alert(response);
+            },
+            error: function (er) {
+                alert(er);
+            }
+
+        });
+    });
+</script>
+

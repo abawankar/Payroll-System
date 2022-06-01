@@ -1,0 +1,333 @@
+﻿@using WebPayroll.Helper
+@{
+    ViewBag.Title = "Prepare Monthly Salary";
+}
+
+<style>
+    input, select, textarea {
+        max-width: 180px;
+    }
+</style>
+
+<div class="panel panel-info topmar-10">
+    <div class="panel-heading">
+        @Html.MyActionLink("<span class='fa fa-dashboard fa-1x'> Dashboard</span>", "Dashboard", "Index", "Home", null, new { @class = "btn btn-info btn-sm" })
+        @Html.DropDownList("branch", new SelectList((ViewBag.branch) as SelectList, "Value", "Text"), "Select Branch", new { @class = "search-box" })
+        @Html.DropDownList("months", new SelectList((ViewBag.Months) as SelectList, "Value", "Text"), "Salary Month", new { @class = "search-box" })
+
+        <button id="save" type="button" style="display:none" class="btn btn-success btn-sm">
+            <span class="fa fa-save fa-1x"> SaveDraft</span> 
+            <span id="load1" class="fa fa-spin fa-spinner fa-1x"></span>
+        </button>
+
+    </div>
+    <div class="panel-body">
+        <div id="ftable"></div>
+        <div id="table"></div>
+    </div>
+</div>
+
+
+@*Filtering*@
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#months").change(function (e) {
+            var branch = $('#branch').val();
+            if (branch == 0) {
+                alert("Select Branch First");
+                $('#months').val('');
+                return;
+            }
+            $('#table').jtable('load', {
+                branch: $('#branch').val(),month:$('#months').val()
+            });
+            $('#save').show();
+            $('#load1').hide();
+
+            e.preventDefault();
+        });
+
+        $("#save").click(function (e) {
+            e.preventDefault();
+
+            var strconfirm = confirm("Are you sure you want to process?");
+            if (strconfirm == true) {
+                $('#load1').show();
+                var month = $("#months").val();
+                $.ajax({
+                    url: "/DraftMonthlySalary/SaveDraft",
+                    type: "POST",
+                    datatype: 'JSON',
+                    data: { month: month },
+                    success: function (response) {
+                        //code after success
+                        $('#save').hide();
+                        $('#months').hide();
+                        $('#branch').val('')
+                        alert(response);
+                        $('#table').jtable('load');
+                    },
+                    error: function (er) {
+                        alert(er);
+                    }
+                });
+            }
+        });
+
+    });
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var month = $('#months').val();
+        $('#table').jtable({
+            title: '',
+            paging: false,
+            pagesize: 3,
+            sorting: false,
+            defaultSorting: 'Name ASC',
+            actions: {
+                listAction: '@Url.Action("List")',
+                updateAction: '@Url.Action("Update")'
+            },
+            fields: {
+                Id: {
+                    title: 'Id',
+                    width:'1%',
+                    key: true,
+                    create: false,
+                    edit: false,
+                    list: false
+                },
+                EmpId: {
+                    title: 'Employee',
+                    width: '2%',
+                    options: '@Url.Action("GetEmployeeOptions", "Employee")',
+                    edit: false,
+                },
+                Basic: {
+                    title: 'Basic',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                HRA: {
+                    title: 'HRA',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                EduAllowance: {
+                    title: 'EduAllowance',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                TelephoneReimb: {
+                    title: 'TelephoneReimb',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                SatutoryBonus: {
+                    title: 'SatutoryBonus',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                CarRunningReimb: {
+                    title: 'CarRunningReimb',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                OtherAllowance: {
+                    title: 'OtherAllowance',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                GrossSalary: {
+                    title: 'GrossSalary',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right bg-info'
+                },
+                PF: {
+                    title: 'PF',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                VPF: {
+                    title: 'VPF',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                ESI: {
+                    title: 'ESI',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                TDS: {
+                    title: 'TDS',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                LoanAmount: {
+                    title: 'LoanAmount',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                NetDedn: {
+                    title: 'NetDeduction',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                NetSalary: {
+                    title: 'NetSalary',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right bg-info'
+                },
+                PaidDays: {
+                    title: 'PaidDays',
+                    width: '0.1%',
+                    listClass: 'text-right'
+                },
+            },
+            formCreated: function (event, data) {
+                data.form.validationEngine();
+            },
+            formSubmitting: function (event, data) {
+                return data.form.validationEngine('validate');
+            },
+            formClosed: function (event, data) {
+                data.form.validationEngine('hide');
+                data.form.validationEngine('detach');
+                $('#ftable').jtable('load');
+            },
+            recordsLoaded: function (event, data) {
+                $('#ftable').jtable('load');
+            }
+        });
+    });
+</script>
+
+@*Footer table*@
+<script type="text/javascript">
+    $(document).ready(function () {
+        var month = $('#months').val();
+        $('#ftable').jtable({
+            title: 'Prepare Monthly Salary',
+            paging: false,
+            pagesize: 3,
+            sorting: false,
+            defaultSorting: 'Name ASC',
+            actions: {
+                listAction: '@Url.Action("SalaryFooter")',
+            },
+            fields: {
+                Id: {
+                    title: 'Id',
+                    width:'1%',
+                    key: true,
+                    create: false,
+                    edit: false,
+                    list: false
+                },
+                NoOfEmp: {
+                    title: 'NoOfEmp',
+                    width: '1%',
+                    listClass: 'text-center'
+                },
+                Basic: {
+                    title: 'Basic',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                HRA: {
+                    title: 'HRA',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                EduAllowance: {
+                    title: 'EduAllowance',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                TelephoneReimb: {
+                    title: 'TelephoneReimb',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                SatutoryBonus: {
+                    title: 'SatutoryBonus',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                CarRunningReimb: {
+                    title: 'CarRunningReimb',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                OtherAllowance: {
+                    title: 'OtherAllowance',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                GrossSalary: {
+                    title: 'GrossSalary',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                PF: {
+                    title: 'PF',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                VPF: {
+                    title: 'VPF',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                ESI: {
+                    title: 'ESI',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                TDS: {
+                    title: 'TDS',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                LoanAmount: {
+                    title: 'LoanAmount',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                NetDedn: {
+                    title: 'NetDeduction',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+                NetSalary: {
+                    title: 'NetSalary',
+                    width: '1%',
+                    edit: false,
+                    listClass: 'text-right'
+                },
+            },
+        });
+    });
+</script>

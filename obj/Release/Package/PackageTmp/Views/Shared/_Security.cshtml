@@ -1,0 +1,15 @@
+﻿@using WebPayroll.Helper
+@{
+    ViewBag.Title = "Unauthorized";
+}
+
+<div class="panel panel-info topmar-10">
+    <div class="panel-heading">
+        @Html.MyActionLink("<span class='fa fa-dashboard fa-1x'> Dashboard</span>", "Dashboard", "Index", "Home", null, new { @class = "btn btn-info btn-sm" })
+    </div>
+    <div class="panel-body">
+        <span class="fa fa-fac"></span>
+        <h2 class="text-center text-danger"> Sorry, You are not Authorized to do this action 
+        <br /> Please contact Application Administrator</h2>
+    </div>
+</div>

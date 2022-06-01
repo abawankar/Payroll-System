@@ -1,0 +1,161 @@
+﻿@using WebPayroll.Helper
+@model WebPayroll.Areas.LMS.Models.LeaveApplicationModel
+@{
+    ViewBag.Title = "Leave Application";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style type="text/css">
+    .form-group{
+        margin-bottom:5px;
+    }
+</style>
+
+<div class="panel panel-info topmar-10">
+    <div class="panel-heading">
+        @Html.MyActionLink("<span class='fa fa-dashboard fa-1x'> LMS Dashboard</span>", "Dashboard", "Index", "Home", null, new { @class = "btn btn-info btn-sm" })
+        <div class="btn-group dropdown">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Quick Link
+                <span class="caret"></span>
+                <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu">
+                <li>@Html.MyActionLink("<span class='fa fa-edit fa-1x'> Opening Balance</span>", "Opening Balance", "Index", "LeaveOB", null, new { @class = "btn btn-link btn-sm " })</li>
+            </ul>
+        </div>
+    </div>
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-md-12">
+                @using (Html.BeginForm("Create", "LeaveApplication", FormMethod.Post, new { id = "empform" }))
+                {
+                    <div class="col-md-6 no-l-pad">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                Employee Info
+                                <span id="load" class="fa fa-spin fa-spinner"></span>
+                            </div>
+                            <div class="panel-body">
+                                @Html.AntiForgeryToken()
+                                <div class="form-group row">
+                                    <label class="col-sm-3">Branch</label>
+                                    @Html.DropDownList("branch", new SelectList((ViewBag.branch) as SelectList, "Value", "Text"), "Select Branch", new { @class = "form-control col-sm-3" })
+                                </div>
+                                <div class="form-group row">
+                                    <label class="col-sm-3">Employee</label>
+                                    @Html.DropDownList("EmpId", new SelectList((ViewBag.emp) as SelectList, "Value", "Text"), "Select Employee", new { @class = "form-control col-sm-3" })
+                                </div>
+                                <div class="form-group row">
+                                    <label class="col-sm-3">Department</label>
+                                    <input type="text" id="dept" readonly class="col-sm-3 form-control" />
+                                </div>
+                                <div class="form-group row">
+                                    <label class="col-sm-3">Designation</label>
+                                    <input type="text" id="desg" readonly class="col-sm-3 form-control" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 nolrpad">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">Leave Details</div>
+                            <div class="panel-body">
+                                <div class="form-group row">
+                                    <label class="col-sm-2">Leave From</label>
+                                    <input type="date" id="fromdt" name="DateFrom" class="search-box"/>
+                                    @Html.DropDownList("PeriodFrom", new SelectList((ViewBag.span) as SelectList, "Value", "Text"),new { @class = "search-box" })
+                                    <label>To</label>
+                                    <input type="date" id="todt" name="DateTo" class="search-box"/>
+                                    @Html.DropDownList("PeriodTo", new SelectList((ViewBag.span) as SelectList, "Value", "Text"), new { @class = "search-box" })
+                                </div>
+                                <div class="form-group row">
+                                    <label class="col-sm-2">Leave Type</label>
+                                    @Html.DropDownList("LeaveTypeId", new SelectList((ViewBag.leavetype) as SelectList, "Value", "Text"),new { @class = "search-box" })
+                                </div>
+                                <div class="form-group row">
+                                    <label class="col-sm-2">Reason For Leave</label>
+                                    <textarea id="comments" name="LeaveReason" class="form-control"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="submit" class="btn btn-primary " value="Submit" />
+                    @Html.ActionLink("Cancel", "ViewWages", "EmpWages", null, new { @class = "btn btn-primary" })
+                }
+            </div>
+
+            <div class="col-md-4">
+                @if(@TempData["message"]!= null)
+                { 
+                <div class="alert alert-danger">
+                    <strong>@TempData["message"]</strong>
+                </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@*Filtering*@
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#load').hide();
+
+        $("#branch").change(function (e) {
+            $('#load').show();
+            var id = $('#branch').val();
+            if (id == null || id == "") {
+                id = 0;
+            }
+            e.preventDefault();
+            var emp = $('#EmpId');
+            $("#desg").val('');
+            $("#dept").val('');
+            $.ajax({
+                type: 'POST',
+                datatype: 'JSON',
+                url: "@Url.Action("GetEmpByBran", "Employee",new {area=""},null)",
+                data: { branid: id },
+                success: function (data) {
+                var items = "";
+                items += "<option value=\"0\">Select Employee</option>";
+                $.each(data.Result, function (i, item) {
+                    items = items + "<option value=\"" + item.Id + "\">" + item.Name + "</option>";
+                });
+                emp.html("");
+                emp.html(items);
+                $('#load').hide();
+            },
+            error: function () {
+            }
+        });
+        });
+
+        $("#EmpId").change(function (e) {
+            var id = $('#EmpId').val();
+            if (id == null || id == "") {
+                id = 0;
+            }
+            e.preventDefault();
+            $.ajax({
+                type: 'POST',
+                datatype: 'JSON',
+                url: "@Url.Action("GetEmployeeInfo", "Employee",new {area=""},null)",
+                data: { empid: id },
+                success: function (data) {
+                    $.each(data.Result, function (i, item) {
+                        var desg = item.Designation.Name;
+                        var dept = item.Department.Name;
+                        $("#desg").val(desg);
+                        $("#dept").val(dept);
+                    });
+            },
+            error: function () {
+            }
+        });
+    });
+        
+        
+    });
+</script>

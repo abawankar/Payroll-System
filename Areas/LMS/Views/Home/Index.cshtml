@@ -1,0 +1,79 @@
+﻿@using WebPayroll.Helper
+@{
+    ViewBag.Title = "LMS Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css">
+    .panel-sm {
+        padding: 1px 15px;
+    }
+
+    .panel-top {
+        margin-left: 40px;
+    }
+
+    .panel-bot {
+        margin-top: 5px;
+    }
+
+    .dark-col {
+        background-color: #d9edf7;
+        border-color: #bce8f1;
+    }
+
+    .navbar {
+        margin-bottom: 5px;
+    }
+</style>
+
+<script type="text/javascript">
+    function toggler(divId) {
+        $("#" + divId).toggle();
+    }
+</script>
+
+<div class="row topmar-10">
+    <div class="col-sm-12">
+        <div class="panel panel-info">
+            <div class="panel-heading"><strong><span class="fa fa-dashboard fa-2x"></span> LMS DASHBOARD</strong></div>
+            <div class="panel-body">
+
+                <ul class="nav nav-tabs">
+                    <li ><a href="#A" data-toggle="tab"><span class="fa fa-calendar fa-2x"> LMS</span></a></li>
+                    <li class="active"><a href="#B" data-toggle="tab"><span class="fa fa-gear fa-2x"> Transaction</span></a></li>
+                </ul>
+
+                <div class="panel-body tab-border ">
+                    <!-- Tab panes -->
+                    <div class="tab-content">
+                        <div class="tab-pane fade in" id="A">
+                            @Html.MyActionLink("<span class='fa fa-calendar-o fa-1x'> Leave Type</span>", "Leave Type", "Index", "LeaveType", null, new { @class = "btn btn-link btn-sm " })
+                            @Html.MyActionLink("<span class='fa fa-edit fa-1x'> Opening Balance</span>", "Opening Balance", "Index", "LeaveOB", null, new { @class = "btn btn-link btn-sm " })
+                            @Html.MyActionLink("<span class='fa fa-file-text-o fa-1x'> Leave Application</span>", "Leave Application", "Create", "LeaveApplication", null, new { @class = "btn btn-link btn-sm " })
+                        </div>
+                        <div class="tab-pane fade in active" id="B">
+                            @*@{Html.RenderAction("Index","LeaveApplication");}*@
+                            @Html.MyActionLink("<span class='fa fa-calendar-times-o fa-1x'> Leave Details</span>", "Leave Details", "Index", "LeaveDetails", null, new { @class = "btn btn-link btn-sm " })
+                            @Html.MyActionLink("<span class='fa fa-calendar-times-o fa-1x'> Monthly Attendance</span>", "Leave Details", "Index", "MonthlyAttendance", null, new { @class = "btn btn-link btn-sm " })
+                        </div>
+                   </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $(function () {
+            $('.toggle').click(function (event) {
+                event.preventDefault();
+                var target = $(this).attr('href');
+                $(target).toggleClass('hidden show');
+            });
+        });
+    });
+</script>

@@ -1,0 +1,110 @@
+﻿@using WebPayroll.Models
+@model LoginViewModel
+@{
+    ViewBag.Title = "Log in";
+}
+@{
+    ViewBag.Title = "Log in";
+}
+<style>
+    input {
+        max-width: 100%;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="panel panel-primary topmar-10">
+            <div class="panel-heading text-center">
+                <span class="glyphicon glyphicon-lock"></span><strong> Log-in to enter Dashboard</strong>
+                <span id="load" class="fa fa-spin fa-spinner"></span>
+            </div>
+            <div class="panel-body">
+                <section id="loginForm" style="padding:0px 50px;">
+                    @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <div class="form-group">
+                            <div class="col-md-offset-3 col-md-9">
+                            </div>
+                        </div>
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                        <div class="form-group">
+                            <div class="col-sm-12 input-group">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-user text-primary"></i></span>
+                                @Html.TextBoxFor(m => m.Email, new { @class = "form-control font", @placeholder = "Username (Email)" })
+                            </div>
+                            <div class="col-sm-12">
+                                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-sm-12 input-group">
+                                <span class="input-group-addon"><i class="glyphicon glyphicon-lock text-primary"></i></span>
+                                @Html.PasswordFor(m => m.Password, new { @class = "form-control", @placeholder = "Password" })
+                            </div>
+                            <div class="col-sm-12">
+                                @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <div class="checkbox">
+                                    @Html.CheckBoxFor(m => m.RememberMe) Remember me?
+                                    |@Html.ActionLink("Forgot Password?", "ForgotPassword")
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12 nopadding">
+                                <button type="submit" id="log" value="Login" class="btn btn-success btn-group-justified" aria-label="Left Align">
+                                    <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span> Login
+                                </button>
+                            </div>
+                        </div>
+
+                        @Html.Display("Enable this once you have account confirmation enabled for password reset functionality")
+                    }
+                </section>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="panel panel-info topmar-10">
+            <div class="panel-heading">
+                <span class="fa fa-external-link"></span>
+                <strong> Quick Links</strong>
+            </div>
+            <div class="panel-body">
+                <div class="col-md-2">
+                    <div class="row">
+                        <h6><span class="fa fa-angle-double-right"></span> <a target="_blank" class="card-link" href="https://unifiedportal-emp.epfindia.gov.in/epfo/">EPF Challan Payment</a> </h6>
+                    </div>
+                    <div class="row">
+                        <h6><span class="fa fa-angle-double-right"></span> <a target="_blank" class="card-link" href="https://passbook.epfindia.gov.in/MemberPassBook/Login.jsp">PF Passbook</a> </h6>
+                    </div>
+                    <div class="row">
+                        <h6><span class="fa fa-angle-double-right"></span> <a target="_blank" class="card-link" href="https://unifiedportal-mem.epfindia.gov.in/memberinterface/">PF UAN Login</a> </h6>
+                    </div>
+                    <div class="row">
+                        <h6><span class="fa fa-angle-double-right"></span> <a target="_blank" class="card-link" href="http://www.esic.in/ESICInsurance1/Revenueone/Monthly%20Contribution/echallan.aspx">ESIC Challan Payment</a> </h6>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+@*Filtering*@
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#load').hide();
+
+        $('#log').click(function (e) {
+            $('#load').show();
+        });
+
+    });
+</script>

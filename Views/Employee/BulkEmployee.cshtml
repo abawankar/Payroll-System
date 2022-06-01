@@ -1,0 +1,243 @@
+﻿@using WebPayroll.Helper
+
+@{
+    ViewBag.Title = "Upload Bulk Employee";
+}
+
+<div class="panel panel-info topmar-10">
+    <div class="panel-heading">
+        @Html.MyActionLink("<span class='fa fa-dashboard fa-1x'> Dashboard</span> ", "Dashboard", "Index", "Home", null, new { @class = "btn btn-info btn-sm" })
+        
+        @Html.DropDownList("CompId", new SelectList((ViewBag.comp) as SelectList, "Value", "Text"), new { @class = "search-box" })
+        @Html.DropDownList("BranchId", new SelectList((ViewBag.branch) as SelectList, "Value", "Text"), "Select Branch", new { @class = "search-box" })
+
+        <button id="upload" type="button" class="btn btn-info btn-sm">
+            <span class="fa fa-upload"> Select CSV File</span>
+            <span id="load" class="fa fa-spin fa-spinner"></span>
+        </button>
+
+        <button id="save" type="button" style="display:none" class="btn btn-success btn-sm">
+            <span class="fa fa-floppy-o"></span> Save
+            <span id="load1" class="fa fa-spin fa-spinner"></span>
+        </button>
+
+        <i title="Genrate KYC template tile" id="help" class="fa fa-question btn btn-success pull-right"> Genrate Help File</i>
+
+        @if (TempData["Message"] != null)
+        {
+            <div id="message" class="success"> @TempData["Message"] </div>
+        }
+    </div>
+    <div class="panel-body">
+        <input type="file" id="UploadImg" multiple style="display:none" />
+        <div id="dialog-file" style="display: none"> </div>
+        <div id="table"></div>
+    </div>
+</div>
+
+@*Filtering*@
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $('#help').click(function (e) {
+            var url = "/Upload/UploadEmpTemplate.xlsx"
+            window.open(url);
+            e.preventDefault();
+        });
+    });
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#load').hide();
+        $('#load1').hide();
+        $("#message").fadeIn("Slow").delay(2000).fadeOut("Slow");
+
+        $('#table').jtable({
+            title: 'Draft Employee',
+            paging: false,
+            pagesize: 3,
+            sorting: false,
+            defaultSorting: 'Name ASC',
+            actions: {
+                listAction: '@Url.Action("BulkEmpList")',
+            },
+            fields: {
+                Id: {
+                    title: 'SrNo',
+                    width: '1%',
+                    key: true,
+                    create: false,
+                    edit: false,
+                    list: true
+                },
+                CompId: {
+                    title: 'Company',
+                    width: '2%',
+                    options: '@Url.Action("GetCompanyOptions", "Company")',
+                },
+                BranchId: {
+                    title: 'Branch',
+                    width: '2%',
+                    options: '@Url.Action("GetBranchOptions", "Branch")',
+                },
+                DeptId: {
+                    title: 'Department',
+                    width: '2%',
+                    options: '@Url.Action("GetDepartmentOptions", "Department")',
+                },
+                DesigId: {
+                    title: 'Designation',
+                    width: '2%',
+                    options: '@Url.Action("GetDesignationOptions", "Designation")',
+                },
+                EmpCode: {
+                    title: 'EmpCode',
+                    width: '1%'
+                },
+                Name: {
+                    title: 'Name',
+                    width: '3%'
+                },
+                Gender: {
+                    title: 'Gender',
+                    width: '1%',
+                    options: { "M": "Male", "F": "Female", "T": "Transgender" }
+                },
+                MarritalStatus: {
+                    title: 'MaritalStatus',
+                    width: '1%',
+                    options: { "M": "Married", "U": "Un-Married", "W": "Widow/Widower", "D": "Divorse" }
+                },
+                DOB: {
+                    title: 'DOB',
+                    width: '2%',
+                    type: 'date',
+                    display: function (data) {
+                        if (data.record.DOB != null)
+                            return moment(data.record.DOB).format('DD/MM/YYYY')
+                    },
+                },
+                FatherOrHusbandName: {
+                    title: 'FatherOrHusbandName',
+                    width: '2%',
+                    visibility: 'hidden'
+                },
+                ForHFlag: {
+                    title: 'F/H',
+                    width: '2%',
+                    options: { "F": "Father", "H": "Husband" },
+                    visibility: 'hidden'
+                },
+                UAN: {
+                    title: 'UAN',
+                    width: '2%'
+                },
+                ESIIP: {
+                    title: 'ESIP',
+                    width: '2%'
+                },
+                DOJ: {
+                    title: 'DOJ',
+                    width: '2%',
+                    type: 'date',
+                    display: function (data) {
+                        if (data.record.DOJ != null)
+                            return moment(data.record.DOJ).format('DD/MM/YYYY')
+                    },
+                },
+                StatuId: {
+                    title: 'StatutoryCode',
+                    width: '2%',
+                    options: '@Url.Action("GetStatutoryCodeOptions", "StatutoryCode")',
+                    visibility: 'hidden'
+                },
+            },
+            formCreated: function (event, data) {
+                data.form.validationEngine();
+            },
+            formSubmitting: function (event, data) {
+                return data.form.validationEngine('validate');
+            },
+            formClosed: function (event, data) {
+                data.form.validationEngine('hide');
+                data.form.validationEngine('detach');
+            }
+        });
+
+        $("#upload").click(function (e) {
+            e.preventDefault();
+            var compid = $("#CompId").val();
+            var branid = $("#BranchId").val();
+            if (compid == 0) {
+                alert("Please select Company!");
+                return;
+            }
+            if (branid == "") {
+                alert("Please select Branch!");
+                return;
+            }
+            $("#UploadImg").trigger('click');
+        });
+
+
+        $("#save").click(function (e) {
+            e.preventDefault();
+            $('#load1').show();
+            $.ajax({
+                url: "/Employee/SaveEmpBulk",
+                type: "POST",
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    //code after success
+                    $('#save').hide();
+                    $('#table').jtable('load');
+                    alert(response);
+                    $('#load1').hide();
+                },
+                error: function (er) {
+                    alert(er);
+                }
+
+            });
+        });
+    });
+</script>
+
+<script type="text/javascript">
+
+    $("#UploadImg").change(function () {
+        $('#load').show();
+        var data = new FormData();
+        var files = $("#UploadImg").get(0).files;
+        if (files.length > 0) {
+            for (i = 0; i < files.length; i++) {
+                data.append("MyImages"+i,files[i]);
+            }
+        }
+        data.append("CompId", $("#CompId").val());
+        data.append("BranchId", $("#BranchId").val());
+        $.ajax({
+            url: "/Employee/UploadEmpFile",
+            type: "POST",
+            processData: false,
+            contentType: false,
+            data: data,
+            success: function (response) {
+                //code after success
+                $('#table').jtable('load');
+                $('#load').hide();
+                $('#save').show();
+                alert(response);
+            },
+            error: function (er) {
+                alert(er);
+            }
+
+        });
+    });
+</script>
+
+
+

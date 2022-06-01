@@ -1,0 +1,109 @@
+﻿
+
+<div id="table"></div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $('#table').jtable({
+            title: 'Leave Applicaton',
+            paging: true,
+            pagesize: 3,
+            sorting: true,
+            defaultSorting: 'Name ASC',
+            actions: {
+                listAction: '@Url.Action("List")',
+                updateAction: '@Url.Action("Update")',
+                createAction: '@Url.Action("Create")'
+            },
+            fields: {
+                Id: {
+                    title: 'Id',
+                    width:'1%',
+                    key: true,
+                    create: false,
+                    edit: false,
+                    list: false
+                },
+                BranchId: {
+                    title: 'Branch',
+                    width: '2%',
+                    options: '@Url.Action("GetBranchNameOptions", "Branch",new { area = string.Empty }, null)',
+                    edit: false,
+                },
+                EmpId: {
+                    title: 'Employee',
+                    width: '2%',
+                    options: '@Url.Action("GetEmployeeOptions", "Employee",new { area = string.Empty }, null)',
+                    edit: false,
+                },
+                LeaveTypeId: {
+                    title: 'LeaveType',
+                    width: '3%',
+                    options: '@Url.Action("GetLeaveTypeOptions", "LeaveType")',
+                },
+                DateFrom: {
+                    title: 'DateFrom',
+                    width: '2%',
+                    type: 'date',
+                    display: function (data) {
+                        if (data.record.DateFrom != null)
+                            return moment(data.record.DateFrom).format('DD/MM/YYYY')
+                    },
+                },
+                PeriodFrom: {
+                    title: 'Datepart',
+                    width: '1%',
+                    options: { "1": "FullDay", "2": "HalfDay" },
+                },
+                DateTo: {
+                    title: 'DateTo',
+                    width: '2%',
+                    type: 'date',
+                    display: function (data) {
+                        if (data.record.DateTo != null)
+                            return moment(data.record.DateTo).format('DD/MM/YYYY')
+                    },
+                },
+                PeriodTo: {
+                    title: 'Datepart',
+                    width: '1%',
+                    options: { "1": "FullDay", "2": "HalfDay" },
+                },
+                TotalLeave: {
+                    title: 'Total',
+                    width: '2%'
+                },
+                LeaveReason: {
+                    title: 'LeaveReason',
+                    width: '2%'
+                },
+                Status: {
+                    title: 'Status',
+                    width: '0.1%',
+                    options: { "1": "Submitted", "2": "Approved", "3": "Cancelled" },
+                    display: function (data) {
+                        if (data.record.Status == 1)
+                            return "<div class='yellow'>" + 'Submitted' + "</div>";
+                        if (data.record.Status == 2)
+                            return "<div class='green'>" + 'Approved' + "</div>";
+                        if (data.record.Status == 3)
+                            return "<div class='red'>" + 'Cancelled' + "</div>";
+                    },
+                },
+            },
+            formCreated: function (event, data) {
+                data.form.validationEngine();
+            },
+            formSubmitting: function (event, data) {
+                return data.form.validationEngine('validate');
+            },
+            formClosed: function (event, data) {
+                data.form.validationEngine('hide');
+                data.form.validationEngine('detach');
+            }
+        });
+        $('#table').jtable('load');
+
+    });
+</script>

@@ -1,0 +1,113 @@
+﻿@using WebPayroll.Helper
+@{
+    ViewBag.Title = "Dashboard-WebPayroll";
+}
+
+<style type="text/css">
+    .panel-sm {
+        padding: 1px 15px;
+    }
+
+    .panel-top {
+        margin-left: 40px;
+    }
+
+    .panel-bot {
+        margin-top: 5px;
+    }
+
+    .dark-col {
+        background-color: #d9edf7;
+        border-color: #bce8f1;
+    }
+
+    .navbar {
+        margin-bottom: 5px;
+    }
+
+
+</style>
+
+<script type="text/javascript">
+    function toggler(divId) {
+        $("#" + divId).toggle();
+    }
+</script>
+
+<div class="row topmar-10">
+    <div class="col-sm-12">
+        <div class="panel panel-info">
+            <div class="panel-heading"><strong><span class="fa fa-dashboard fa-2x"></span> DASHBOARD</strong></div>
+            <div class="panel-body">
+
+                <ul class="nav nav-tabs">
+                    <li class="active"><a href="#A" data-toggle="tab"><span class="fa fa-th-large fa-2x"> Master</span></a></li>
+                    <li><a href="#B" data-toggle="tab"><span class="fa fa-gear fa-2x"> Transaction</span> </a></li>
+                    <li><a href="#C" data-toggle="tab"><span class="fa fa-bar-chart fa-2x"> Report</span> </a></li>
+                </ul>
+
+                <div class="panel-body tab-border ">
+                    <!-- Tab panes -->
+                    <div class="tab-content">
+                        <div class="tab-pane fade in active" id="A">
+
+                            @Html.MyActionLink("<span class='fa fa-bank fa-1x'> Company</span>", "Company", "Index", "Company", null, new { @class = "btn btn-link btn-sm" })
+                            @Html.MyActionLink("<span class='fa fa-building fa-1x'> Branch</span>", "Branch", "Index", "Branch", null, new { @class = "btn btn-link btn-sm" })
+                            @Html.MyActionLink("<span class='fa fa-list fa-1x'> Department</span>", "Department", "Index", "Department", null, new { @class = "btn btn-link btn-sm " })
+                            @Html.MyActionLink("<span class='fa fa-tag fa-1x'> Designation</span>", "Designation", "Index", "Designation", null, new { @class = "btn btn-link btn-sm " })
+                            @Html.MyActionLink("<span class='fa fa-book fa-1x'> StatutoryCode</span>", "StatutoryCode", "Index", "StatutoryCode", null, new { @class = "btn btn-link btn-sm " })
+                            @Html.MyActionLink("<span class='fa fa-user fa-1x'> Employee</span>", "Employee", "Index", "Employee", null, new { @class = "btn btn-link btn-sm " })
+                            @Html.MyActionLink("<span class='fa fa-th-list fa-1x'> Employee Details View</span>", "Employee details view", "EmployeeFullDetails", "Employee", null, new { @class = "btn btn-link btn-sm " })
+                            <hr />
+                            @Html.MyActionLink("<span class='fa fa-rupee fa-1x'> Salary Master</span>", "Salary Master", "Index", "SalaryMaster", null, new { @class = "btn btn-link btn-sm " })
+                            @Html.MyActionLink("<span class='fa fa-money fa-1x'> Loan Master</span>", "Loan Master", "Index", "LoanMaster", null, new { @class = "btn btn-link btn-sm " })
+                        </div>
+                        <div class="tab-pane fade" id="B">
+                            @Html.MyActionLink("<span class='fa fa-cogs fa-1x'> Salary Revision</span>", "Salary Revision", "Index", "SalaryRevision", null, new { @class = "btn btn-link btn-sm " })
+                            @Html.MyActionLink("<span class='fa fa-gear fa-1x'> Monthly Deduction</span>", "Process Monthly Deduction", "Index", "MonthlyDeduction", null, new { @class = "btn btn-link btn-sm " })
+                            @Html.MyActionLink("<span class='fa fa-briefcase fa-1x'> Prepare Salary</span>", "Prepare Monthly Salary", "Index", "DraftMonthlySalary", null, new { @class = "btn btn-link btn-sm " })
+                            @Html.MyActionLink("<span class='fa fa-envelope-open fa-1x'> View Draft Salary</span>", "View Draft Monthly Salary", "ViewDraftSalary", "DraftMonthlySalary", null, new { @class = "btn btn-link btn-sm " })
+                        </div>
+                      
+                        <div class="tab-pane fade" id="C">
+                            @Html.MyActionLink("<span class='fa fa-binoculars fa-1x'> View Monthly Salary</span>", "View Monthly Salary", "Index", "MonthlySalaryMaster", null, new { @class = "btn btn-link btn-sm " })
+                            @Html.MyActionLink("<span class='fa fa-calendar fa-1x'> Monthly Employee Salary</span>", "View Monthly Employee Salary", "MonthlyEmployeeSalary", "MonthlySalaryMaster", null, new { @class = "btn btn-link btn-sm " })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-4 fa-border" style="margin-top:5px;">
+                    <div class="panel panel-info m-b-5">
+                        <div class="panel-heading">Employee Headcount</div>
+                        <div class="panel-body">
+                            @{Html.RenderAction("EmployeeHeadCount", "Employee");}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-4 fa-border" style="margin-top:5px;">
+                    <div class="panel panel-info m-b-5">
+                        <div class="panel-heading">Employee Gender Split</div>
+                        <div class="panel-body">
+                            @{Html.RenderAction("GenderSplit", "Employee");}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $(function () {
+            $('.toggle').click(function (event) {
+                event.preventDefault();
+                var target = $(this).attr('href');
+                $(target).toggleClass('hidden show');
+            });
+        });
+    });
+</script>

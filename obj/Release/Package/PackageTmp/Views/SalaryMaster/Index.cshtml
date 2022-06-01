@@ -1,0 +1,351 @@
+﻿@using WebPayroll.Helper
+@{
+    ViewBag.Title = "Salary Master";
+}
+<style>
+    input, select, textarea {
+        max-width: 180px;
+    }
+</style>
+
+<div class="panel panel-info topmar-10">
+    <div class="panel-heading">
+        @Html.MyActionLink("<span class='fa fa-dashboard fa-1x'> Dashboard</span>", "Dashboard", "Index", "Home", null, new { @class = "btn btn-info btn-sm" })
+        
+        <div class="btn-group dropdown">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Quick Link
+                <span class="caret"></span>
+                <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu">
+                <li>@Html.MyActionLink("<span class='fa fa-gear fa-1x'> Monthly Deduction</span>", "Process Monthly Deduction", "Index", "MonthlyDeduction", null, new { @class = "btn btn-link btn-sm btn-mar" })</li>
+                <li>@Html.MyActionLink("<span class='fa fa-briefcase fa-1x'> Prepare Salary</span>", "Prepare Monthly Salary", "Index", "DraftMonthlySalary", null, new { @class = "btn btn-link btn-sm btn-mar" })</li>
+                <li>@Html.MyActionLink("<span class='fa fa-envelope-open fa-1x'> View Draft Salary</span>", "View Draft Monthly Salary", "ViewDraftSalary", "DraftMonthlySalary", null, new { @class = "btn btn-link btn-sm btn-mar" })</li>
+                <li>@Html.MyActionLink("<span class='fa fa-envelope fa-1x'> View Monthly Salary</span>", "View Monthly Salary", "Index", "MonthlySalaryMaster", null, new { @class = "btn btn-link btn-sm btn-mar" })</li>
+            </ul>
+        </div>
+
+        @Html.DropDownList("branch", new SelectList((ViewBag.branch) as SelectList, "Value", "Text"), "Select Branch", new { @class = "search-box" })
+        <input type="text" class="search-box font" id="search" placeholder="Search by" />
+        @Html.DropDownList("SearchFields", new SelectList((ViewBag.SearchFields) as SelectList, "Value", "Text"), new { @class = "search-box" })
+        <i title="search" id="searchbtn" class="fa fa-search btn btn-info"></i>
+        <i title="Refresh" id="refreshbtn" class="fa fa-refresh fa-1x btn btn-link pull-right"></i>
+    </div>
+    <div class="panel-body">
+        <div id="table"></div>
+    </div>
+</div>
+
+
+@*Filtering*@
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#branch").change(function (e) {
+            e.preventDefault();
+            $('#table').jtable('load', {
+                branch: $('#branch').val()
+            });
+        });
+
+        $('#search').bind('keyup', function (e) {
+            if (e.which == 13) {
+                $('#searchbtn').trigger('click');
+            }
+        });
+
+        $('#searchbtn').click(function (e) {
+            var id = $('#branch').val();
+            if (id == 0) {
+                alert("Select branch first!");
+                return;
+            }
+            $('#table').jtable('load', {
+                branch: $('#branch').val(), field: $('#SearchFields').val(), search: $('#search').val()
+            });
+        });
+
+
+        $('#refreshbtn').click(function (e) {
+            $('#search').val('');
+            $('#table').jtable('load');
+        });
+
+    });
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $('#table').jtable({
+            title: 'Salary Master',
+            paging: true,
+            pagesize: 3,
+            sorting: false,
+            defaultSorting: 'Name ASC',
+            actions: {
+                listAction: '@Url.Action("List")',
+                updateAction: '@Url.Action("Update")',
+            },
+            fields: {
+                Id: {
+                    title: 'Id',
+                    width:'1%',
+                    key: true,
+                    create: false,
+                    edit: false,
+                    list: false
+                },
+                EmpId: {
+                    title: 'Employee',
+                    width: '4%',
+                    options: '@Url.Action("GetEmployeeOptions", "Employee")',
+                },
+                Basic: {
+                    title: 'Basic',
+                    width: '1%',
+                    listClass:'text-right'
+                },
+                HRA: {
+                    title: 'HRA',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                EduAllowance: {
+                    title: 'EduAllowance',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                TelephoneReimb: {
+                    title: 'TelephoneReimb',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                SatutoryBonus: {
+                    title: 'SatutoryBonus',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                CarRunningReimb: {
+                    title: 'CarRunningReimb',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                OtherAllowance: {
+                    title: 'OtherAllowance',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                GrossSalary: {
+                    title: 'GrossSalary',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                PF: {
+                    title: 'PF',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                VPF: {
+                    title: 'VPF',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                ESI: {
+                    title: 'ESI',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                TDS: {
+                    title: 'TDS',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                NetSalary: {
+                    title: 'NetSalary',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                PFCont: {
+                    title: 'PFContribution',
+                    width: '1%',
+                    list:false,
+                    input: function (data) {
+                        return '<input type="text" readonly class="jtable-input-readonly" name="PF Contribution" value="' + data.record.Employee.StatutoryCode.PFCont + '"/>';
+                    }
+                },
+                IsPFExempted: {
+                    title: 'IsPFExempted',
+                    width: '1%',
+                    options: { "Y": "Yes", "N": "No" },
+                    listClass: 'text-center'
+                },
+                IsESIExempted: {
+                    title: 'IsESIExempted',
+                    width: '1%',
+                    options: { "Y": "Yes", "N": "No" },
+                    listClass: 'text-center'
+                },
+                IsPFCelling: {
+                    title: 'IsPFCelling',
+                    width: '1%',
+                    options: { "Y": "Yes", "N": "No" },
+                    listClass: 'text-center'
+                },
+
+            },
+            toolbar: {
+                items: [{
+                    icon: '/Content/themes/base/images/bulk.png',
+                    text: 'Update Bulk',
+                    click: function () {
+                        window.location.href = "/SalaryMaster/BulkSalary";
+                    }
+                }]
+            },
+            formCreated: function (event, data) {
+
+                document.getElementById("Edit-EmpId").disabled = true;
+
+                data.form.find('input[name="GrossSalary"]').css({ 'background-color': '#e5e5e5' });
+                $('#Edit-GrossSalary').prop('readonly', true);
+
+                data.form.find('input[name="PF"]').css({ 'background-color': '#e5e5e5' });
+                $('#Edit-PF').prop('readonly', true);
+
+                data.form.find('input[name="ESI"]').css({ 'background-color': '#e5e5e5' });
+                $('#Edit-ESI').prop('readonly', true);
+
+                data.form.find('input[name="NetSalary"]').css({ 'background-color': '#e5e5e5' });
+                $('#Edit-NetSalary').prop('readonly', true);
+
+                data.form.find('input[name="PF Contribution"]').css({ 'background-color': '#e5e5e5' });
+
+                data.form.find('input[name="Basic"]').change(function (e) {
+                    $("#Edit-GrossSalary").val(GrossSalary);
+                    $("#Edit-PF").val(CalculatePF);
+                    $("#Edit-NetSalary").val(CalculateNetSalary);
+                });
+                data.form.find('select[name="IsPFExempted"]').change(function (e) {
+                    $("#Edit-PF").val(CalculatePF);
+                    $("#Edit-NetSalary").val(CalculateNetSalary);
+                });
+                data.form.find('input[name="HRA"]').change(function (e) {
+                    $("#Edit-GrossSalary").val(GrossSalary);
+                    $("#Edit-NetSalary").val(CalculateNetSalary);
+                });
+                data.form.find('input[name="Conveyance"]').change(function (e) {
+                    $("#Edit-GrossSalary").val(GrossSalary);
+                    $("#Edit-NetSalary").val(CalculateNetSalary);
+                });
+                data.form.find('input[name="Medical"]').change(function (e) {
+                    $("#Edit-GrossSalary").val(GrossSalary);
+                    $("#Edit-NetSalary").val(CalculateNetSalary);
+                });
+                data.form.find('input[name="EduAllowance"]').change(function (e) {
+                    $("#Edit-GrossSalary").val(GrossSalary);
+                    $("#Edit-NetSalary").val(CalculateNetSalary);
+                });
+                data.form.find('input[name="TelephoneReimb"]').change(function (e) {
+                    $("#Edit-GrossSalary").val(GrossSalary);
+                    $("#Edit-NetSalary").val(CalculateNetSalary);
+                });
+                data.form.find('input[name="SatutoryBonus"]').change(function (e) {
+                    $("#Edit-GrossSalary").val(GrossSalary);
+                    $("#Edit-NetSalary").val(CalculateNetSalary);
+                });
+                data.form.find('input[name="CarRunningReimb"]').change(function (e) {
+                    $("#Edit-GrossSalary").val(GrossSalary);
+                    $("#Edit-NetSalary").val(CalculateNetSalary);
+                });
+                data.form.find('input[name="OtherAllowance"]').change(function (e) {
+                    $("#Edit-GrossSalary").val(GrossSalary);
+                    $("#Edit-NetSalary").val(CalculateNetSalary);
+                });
+                data.form.find('input[name="VPF"]').change(function (e) {
+                    $("#Edit-GrossSalary").val(GrossSalary);
+                    $("#Edit-NetSalary").val(CalculateNetSalary);
+                });
+                data.form.find('input[name="TDS"]').change(function (e) {
+                    $("#Edit-GrossSalary").val(GrossSalary);
+                    $("#Edit-NetSalary").val(CalculateNetSalary);
+                });
+
+                data.form.find('select[name="IsESIExempted"]').change(function (e) {
+                    $("#Edit-ESI").val(CalculateESI);
+                    $("#Edit-NetSalary").val(CalculateNetSalary);
+                });
+                data.form.find('select[name="IsPFCelling"]').change(function (e) {
+                    var IsPFCelling = data.form.find('select[name="IsPFCelling"]').val()
+                    var Basic = parseFloat(data.form.find('input[name="Basic"]').val());
+                    var pfcont = parseFloat(data.form.find('input[name="PF Contribution"]').val());
+                    if (IsPFCelling == "N"){
+                        var pf = Math.round((Basic * pfcont) / 100);
+                        $("#Edit-PF").val(pf);
+                    }                      
+                    else
+                    {
+                        var pf = Basic >= 15000 ? 1800 : Math.round((Basic * pfcont) / 100);
+                        $("#Edit-PF").val(pf);
+                    }
+                        
+                    $("#Edit-ESI").val(CalculateESI);
+                    $("#Edit-NetSalary").val(CalculateNetSalary);
+                });
+
+                function GrossSalary() {
+                    var Basic = parseFloat(data.form.find('input[name="Basic"]').val());
+                    var HRA = parseFloat(data.form.find('input[name="HRA"]').val());
+                    var Conveyance = parseFloat(data.form.find('input[name="Conveyance"]').val());
+                    var Medical = parseFloat(data.form.find('input[name="Medical"]').val());
+                    var EduAllowance = parseFloat(data.form.find('input[name="EduAllowance"]').val());
+                    var TelephoneReimb = parseFloat(data.form.find('input[name="TelephoneReimb"]').val());
+                    var SatutoryBonus = parseFloat(data.form.find('input[name="SatutoryBonus"]').val());
+                    var CarRunningReimb = parseFloat(data.form.find('input[name="CarRunningReimb"]').val());
+                    var OtherAllowance = parseFloat(data.form.find('input[name="OtherAllowance"]').val());
+                    return Basic + HRA + EduAllowance + TelephoneReimb + CarRunningReimb + SatutoryBonus + OtherAllowance;
+                }
+
+                function CalculatePF() {
+                    var Basic = parseFloat(data.form.find('input[name="Basic"]').val());
+                    var IsPFExempted = data.form.find('select[name="IsPFExempted"]').val()
+                    var pfcont = parseFloat(data.form.find('input[name="PF Contribution"]').val());
+                    if (IsPFExempted == "N")
+                        return Math.round((Basic * 12) / 100);
+                    else
+                        return 0;
+                }
+
+                function CalculateESI() {
+                    var gross = GrossSalary();
+                    var IsESIExempted = data.form.find('select[name="IsESIExempted"]').val()
+                    if (IsESIExempted == "N")
+                    {
+                        return Math.ceil((gross * 1.75) / 100);
+                    }
+                        
+                    else
+                        return 0;
+                }
+                function CalculateNetSalary() {
+                    var gross = GrossSalary();
+                    var pf = CalculatePF();
+                    var esi = CalculateESI();
+                    var TDS = parseFloat(data.form.find('input[name="TDS"]').val());
+                    var VPF = parseFloat(data.form.find('input[name="VPF"]').val());
+                    return gross - pf - esi - VPF-TDS;
+                }
+                data.form.validationEngine();
+            },
+            formSubmitting: function (event, data) {
+                return data.form.validationEngine('validate');
+            },
+            formClosed: function (event, data) {
+                data.form.validationEngine('hide');
+                data.form.validationEngine('detach');
+            }
+        });
+        //$('#table').jtable('load');
+    });
+</script>

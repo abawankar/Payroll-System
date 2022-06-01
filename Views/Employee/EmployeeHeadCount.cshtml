@@ -1,0 +1,93 @@
+﻿<script src="~/Scripts/Chart.min.js"></script>
+
+<div class="card-block">
+    <div class="row p-1">
+        <span id="load" class="fa fa-spin fa-spinner fa-2x" style="margin-left:20px;"></span>
+        <canvas height=320 id="myChart" style="padding: 0;margin: auto;display: block; "> </canvas>
+    </div>
+</div>
+
+<script>
+    $.ajax({
+        type: "POST",
+        url: "/Employee/EmployeeHeadCountChart",
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (chData) {
+        var aData = chData;
+        var aLabels = aData[0]
+        var aDatasets1 = aData[1]
+
+        var total = aData[1].reduce((pv,cv)=>{
+            return pv + (parseFloat(cv)||0);
+        },0);
+        var dataT = {
+            labels: aLabels,
+            datasets: [{
+                label: "Emp",
+                data: aDatasets1,
+                fill: true,
+                backgroundColor: ["rgba(54, 162, 235, 0.7)",
+                    "rgba(255, 99, 132, 0.7)",
+                    "rgba(255, 159, 64, 0.7)",
+                    "rgba(255, 205, 86, 0.7)",
+                    "rgba(75, 192, 192, 0.7)",
+                    "rgba(153, 102, 255, 0.7)",
+                    "rgba(201, 203, 207, 0.7)",
+                    "rgba(54, 163, 235, 0.7)",
+                    "rgba(255, 100, 132, 0.7)",
+                    "rgba(255, 160, 64, 0.7)"],
+                borderColor: ["rgb(54, 162, 235)",
+                    "rgb(255, 99, 132)",
+                    "rgb(255, 159, 64)",
+                    "rgb(255, 205, 86)",
+                    "rgb(75, 192, 192)",
+                    "rgb(153, 102, 255)",
+                    "rgb(201, 203, 207)",
+                    "rgb(54, 163, 235)",
+                    "rgb(255, 100, 132)",
+                    "rgb(255, 160, 64)"],
+                borderWidth: 1
+                }]
+            };
+        var ctx = $("#myChart").get(0).getContext("2d");
+
+        var myNewChart = new Chart(ctx, {
+            type: 'bar',
+            data: dataT,
+            options: {
+                responsive: false,
+                title: { display: true, text: 'Headcount- ' + total, fontSize: 12, padding: 10, fontColor:'#fd7e14' },
+                "animation": {
+                    "duration": 1,
+                    "onComplete": function () {
+                        var chartInstance = this.chart,
+                          ctx = chartInstance.ctx;
+
+                        ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontSize, Chart.defaults.global.defaultFontStyle, Chart.defaults.global.defaultFontFamily);
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'bottom';
+
+                        this.data.datasets.forEach(function (dataset, i) {
+                            var meta = chartInstance.controller.getDatasetMeta(i);
+                            meta.data.forEach(function (bar, index) {
+                                var data = dataset.data[index];
+                                ctx.fillText(data, bar._model.x, bar._model.y - 5);
+                            });
+                        });
+                    }
+                },
+                legend: { display: false, position: 'bottom' },
+                scales: {
+                xAxes: [{ gridLines: { display: false }, display: false, scaleLabel: { display: false, labelString: '' }}],
+                yAxes: [{ gridLines: { display: false }, display: false, scaleLabel: { display: false, labelString: '' }}]
+            },
+        }
+        });
+        $('#load').hide();
+    }
+});
+</script>
+
+
+

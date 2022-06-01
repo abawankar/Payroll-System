@@ -1,0 +1,558 @@
+﻿@using WebPayroll.Helper
+@{
+    ViewBag.Title = "Leave Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    input, select, textarea {
+        max-width: 180px;
+    }
+    
+</style>
+
+<div class="panel panel-info topmar-10">
+    <div class="panel-heading">
+        @Html.MyActionLink("<span class='fa fa-dashboard fa-1x'> LMS Dashboard</span>", "Dashboard", "Index", "Home", null, new { @class = "btn btn-info btn-sm" })
+        <div class="btn-group dropdown">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Quick Link
+                <span class="caret"></span>
+                <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu">
+                <li>@Html.MyActionLink("<span class='fa fa-plus fa-1x'> Add Missing Employee</span>", "Missing employee", "MissingEmployee", "LeaveDetails", null, new { @class = "btn btn-link btn-sm " })</li>
+            </ul>
+        </div>
+
+        @Html.DropDownList("branch", new SelectList((ViewBag.branch) as SelectList, "Value", "Text"), "Select Branch", new { @class = "search-box" })
+        @Html.DropDownList("year", new SelectList((ViewBag.year) as SelectList, "Value", "Text"), "Select Year", new { @class = "search-box" })
+        <input type="text" class="search-box font" id="search" placeholder="Search by name" />
+        <i title="search" id="searchbtn" class="fa fa-search btn btn-info"></i>
+        <i title="Refresh" id="refreshbtn" class="fa fa-refresh fa-1x btn btn-link pull-right"></i>
+    </div>
+    <div class="panel-body">
+        <div id="table"></div>
+        <div id="dialog-edit" class="p-0 m-0" style="display: none"> </div>
+    </div>
+</div>
+
+@*Filtering*@
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#branch").change(function (e) {
+            e.preventDefault();
+            $('#table').jtable('load', {
+                branch: $('#branch').val()
+            });
+        });
+
+        $('#searchbtn').click(function (e) {
+            var id = $('#branch').val();
+            if (id == 0) {
+                alert("Select branch first!");
+                return;
+            }
+            $('#table').jtable('load', {
+                branch: $('#branch').val(),yr: $('#year').val(), search: $('#search').val()
+            });
+        });
+
+        $("#refreshbtn").click(function (e) {
+            $('#year').val('')
+            $('#search').val('')
+            e.preventDefault();
+            $('#table').jtable('load', {
+                branch: $('#branch').val()
+            });
+        });
+
+    });
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        //Dialog form
+        $("#dialog-edit").dialog({
+            title: 'In/Out Timings',
+            autoOpen: false,
+            resizable: false,
+            width: 1250,
+            show: { effect: 'drop', direction: "up" },
+            modal: true,
+            draggable: true,
+            open: function (event, ui) {
+                $(".ui-dialog-titlebar-close").show();
+                $(this).load(url);
+            },
+            buttons: {
+                "Cancel": function () {
+                    $(this).dialog("close");
+                },
+            }
+        });
+        //End dialog form
+
+        $('#table').jtable({
+            title: 'Leave Details',
+            paging: true,
+            pagesize: 3,
+            sorting: false,
+            defaultSorting: 'Name ASC',
+            actions: {
+                listAction: '@Url.Action("List")',
+            },
+            fields: {
+                Id: {
+                    title: 'Id',
+                    width:'1%',
+                    key: true,
+                    create: false,
+                    edit: false,
+                    list: false
+                },
+                Year: {
+                    title: 'Year',
+                    width: '0.2%',
+                },
+                BranchId: {
+                    title: 'Branch',
+                    width: '1%',
+                    options: '@Url.Action("GetBranchNameOptions", "Branch",new { area = string.Empty }, null)',
+                    edit: false,
+                },
+                EmpName: {
+                    title: 'Employee',
+                    width: '4%',
+                },
+                DOJ: {
+                    title: 'DOJ',
+                    width: '1%',
+                    type: 'date',
+                    listClass:'text-right',
+                    display: function (data) {
+                        if (data.record.DOJ != null)
+                            return moment(data.record.DOJ).format('DD/MMM/YYYY')
+                    },
+                },
+                TotalExp: {
+                    title: 'TotalExp',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                PaidLeave: {
+                    title: 'PaidLeave',
+                    width: '1%',
+                    listClass: 'text-center'
+                },
+                Extra: {
+                    title: 'Extra',
+                    width: '1%',
+                    listClass: 'text-center'
+                },
+                Unpaid: {
+                    title: 'Unpaid',
+                    width: '1%',
+                    listClass: 'text-center'
+                },
+                Total: {
+                    title: 'Total',
+                    width: '1%',
+                    listClass: 'text-center'
+                },
+                Balance: {
+                    title: 'Balance',
+                    width: '0.1%',
+                    display: function (data) {
+                        var x = data.record.Balance;
+                        if (x >= 0) {
+                            return "<div class='green'>" + x + "</div>";
+                        }
+                        else {
+                            return "<div class='red'>" + x + "</div>";
+                        }
+                    }
+                },
+                Deducted: {
+                    title: 'Deducted',
+                    width: '0.1%',
+                    listClass:'text-center'
+                },
+                Details: {
+                    title: '',
+                    width: '0.1%',
+                    sorting: false,
+                    create: false,
+                    edit: false,
+                    listClass: 'child-opener-image-column',
+                    display: function (data) {
+                        var yr = $("#year").val();
+                        var $img = $('<i title="Monthly leave details" class="fa fa-list-alt fa-1x pointer text-primary"/>');
+                        $img.click(function () {
+                            $('#table').jtable('openChildTable', $img.closest('tr'),
+                            {
+                                title: data.record.EmpName + " -Leave Details",
+                                paging: false,
+                                pagesize: 3,
+                                sorting: false,
+                                actions: {
+                                    listAction: '@Url.Action("lvList")?id=' + data.record.Id,
+                                    updateAction: '@Url.Action("lvupdate")',
+                                },
+                                fields: {
+                                    Id: {
+                                        title: 'Id',
+                                        width: '1%',
+                                        key: true,
+                                        create: false,
+                                        edit: false,
+                                        list: false
+                                    },
+                                    Year: {
+                                        title: 'Year',
+                                        width: '2%'
+                                    },
+                                    PaidLeave: {
+                                        title: 'PaidLeave',
+                                        width: '2%',
+                                    },
+                                    Extra: {
+                                        title: 'Extra',
+                                        width: '2%'
+                                    },
+                                    UnPaid: {
+                                        title: 'UnPaid',
+                                        width: '2%'
+                                    },
+                                    JAN: {
+                                        title: 'JAN',
+                                        width: '2%',
+                                        display: function (time) {
+                                            var $img = $('<div class="grey" >' + time.record.JAN + '</div>');
+                                            $img.click(function () {
+                                                imgWindow(data.record.EmpId, 1, time.record.Year)
+                                                return false;
+                                            });
+                                            return $img;
+                                        }
+                                    },
+                                    FEB: {
+                                        title: 'FEB',
+                                        width: '2%',
+                                        display: function (time) {
+                                            var $img = $('<div class="grey" >' + time.record.FEB + '</div>');
+                                            $img.click(function () {
+                                                imgWindow(data.record.EmpId, 2, time.record.Year)
+                                                return false;
+                                            });
+                                            return $img;
+                                        }
+                                    },
+                                    MAR: {
+                                        title: 'MAR',
+                                        width: '2%',
+                                        display: function (time) {
+                                            var $img = $('<div class="grey" >' + time.record.MAR + '</div>');
+                                            $img.click(function () {
+                                                imgWindow(data.record.EmpId, 3, time.record.Year)
+                                                return false;
+                                            });
+                                            return $img;
+                                        }
+                                    },
+                                    APR: {
+                                        title: 'APR',
+                                        width: '2%',
+                                        display: function (time) {
+                                            var $img = $('<div class="grey" >' + time.record.APR + '</div>');
+                                            $img.click(function () {
+                                                imgWindow(data.record.EmpId, 4, time.record.Year)
+                                                return false;
+                                            });
+                                            return $img;
+                                        }
+                                    },
+                                    MAY: {
+                                        title: 'MAY',
+                                        width: '2%',
+                                        display: function (time) {
+                                            var $img = $('<div class="grey" >' + time.record.MAY + '</div>');
+                                            $img.click(function () {
+                                                imgWindow(data.record.EmpId, 5, time.record.Year)
+                                                return false;
+                                            });
+                                            return $img;
+                                        }
+                                    },
+                                    JUN: {
+                                        title: 'JUN',
+                                        width: '2%',
+                                        display: function (time) {
+                                            var $img = $('<div class="grey" >' + time.record.JUN + '</div>');
+                                            $img.click(function () {
+                                                imgWindow(data.record.EmpId, 6, time.record.Year)
+                                                return false;
+                                            });
+                                            return $img;
+                                        }
+                                    },
+                                    JUL: {
+                                        title: 'JUL',
+                                        width: '2%',
+                                        display: function (time) {
+                                            var $img = $('<div class="grey" >' + time.record.JUL + '</div>');
+                                            $img.click(function () {
+                                                imgWindow(data.record.EmpId, 7, time.record.Year)
+                                                return false;
+                                            });
+                                            return $img;
+                                        }
+                                    },
+                                    AUG: {
+                                        title: 'AUG',
+                                        width: '2%',
+                                        display: function (time) {
+                                            var $img = $('<div class="grey" >' + time.record.AUG + '</div>');
+                                            $img.click(function () {
+                                                imgWindow(data.record.EmpId, 8, time.record.Year)
+                                                return false;
+                                            });
+                                            return $img;
+                                        }
+                                    },
+                                    SEP: {
+                                        title: 'SEP',
+                                        width: '2%',
+                                        display: function (time) {
+                                            var $img = $('<div class="grey" >' + time.record.SEP + '</div>');
+                                            $img.click(function () {
+                                                imgWindow(data.record.EmpId, 9, time.record.Year)
+                                                return false;
+                                            });
+                                            return $img;
+                                        }
+                                    },
+                                    OCT: {
+                                        title: 'OCT',
+                                        width: '2%',
+                                        display: function (time) {
+                                            var $img = $('<div class="grey" >' + time.record.OCT + '</div>');
+                                            $img.click(function () {
+                                                imgWindow(data.record.EmpId, 10, time.record.Year)
+                                                return false;
+                                            });
+                                            return $img;
+                                        }
+                                    },
+                                    NOV: {
+                                        title: 'NOV',
+                                        width: '2%',
+                                        display: function (time) {
+                                            var $img = $('<div class="grey" >' + time.record.NOV + '</div>');
+                                            $img.click(function () {
+                                                imgWindow(data.record.EmpId, 11, time.record.Year)
+                                                return false;
+                                            });
+                                            return $img;
+                                        }
+                                    },
+                                    DEC: {
+                                        title: 'DEC',
+                                        width: '2%',
+                                        display: function (time) {
+                                            var $img = $('<div class="grey" >' + time.record.DEC + '</div>');
+                                            $img.click(function () {
+                                                imgWindow(data.record.EmpId, 12, time.record.Year)
+                                                return false;
+                                            });
+                                            return $img;
+                                        }
+                                    },
+                                    Total: {
+                                        title: 'Total',
+                                        width: '2%'
+                                    },
+                                    Balance: {
+                                        title: 'Balance',
+                                        width: '0.1%',
+                                        display: function (data) {
+                                            var x = data.record.Balance;
+                                            if (x >= 0) {
+                                                return "<div class='green'>" + x + "</div>";
+                                            }
+                                            else {
+                                                return "<div class='red'>" + x + "</div>";
+                                            }
+                                        }
+                                    },
+                                   
+                                },
+                                formCreated: function (event, data) {
+                                    if (data.formType == 'edit') {
+                                        data.form.find('input[name="Year"]').css({ 'background-color': '#e5e5e5' });
+                                        $('#Edit-Year').prop('readonly', true);
+                                    }
+                                    data.form.validationEngine();
+                                },
+                                formSubmitting: function (event, data) {
+                                    return data.form.validationEngine('validate');
+                                },
+                                formClosed: function (event, data) {
+                                    data.form.validationEngine('hide');
+                                    data.form.validationEngine('detach');
+                                }
+                            }, function (data) {
+                                data.childTable.jtable('load');
+                            });
+                        });
+                        return $img;
+                    }
+                },
+                Deduction: {
+                    title: '',
+                    width: '0.1%',
+                    sorting: false,
+                    create: false,
+                    edit: false,
+                    listClass: 'child-opener-image-column',
+                    display: function (data) {
+                        var yr = $("#year").val();
+                        var $img = $('<i title="Monthly deduction details" class="fa fa-th-large fa-1x pointer text-primary"/>');
+                        $img.click(function () {
+                            $('#table').jtable('openChildTable', $img.closest('tr'),
+                            {
+                                title: data.record.EmpName + " -Deduction Details",
+                                paging: false,
+                                pagesize: 3,
+                                sorting: false,
+                                actions: {
+                                    listAction: '@Url.Action("lvdList")?id=' + data.record.Id,
+                                    updateAction: '@Url.Action("lvdupdate")',
+                                },
+                                fields: {
+                                    Id: {
+                                        title: 'Id',
+                                        width: '1%',
+                                        key: true,
+                                        create: false,
+                                        edit: false,
+                                        list: false
+                                    },
+                                    Year: {
+                                        title: 'Year',
+                                        width: '2%'
+                                    },
+                                    JAN: {
+                                        title: 'JAN',
+                                        width: '2%'
+                                    },
+                                    FEB: {
+                                        title: 'FEB',
+                                        width: '2%'
+                                    },
+                                    MAR: {
+                                        title: 'MAR',
+                                        width: '2%'
+                                    },
+                                    APR: {
+                                        title: 'APR',
+                                        width: '2%'
+                                    },
+                                    MAY: {
+                                        title: 'MAY',
+                                        width: '2%'
+                                    },
+                                    JUN: {
+                                        title: 'JUN',
+                                        width: '2%'
+                                    },
+                                    JUL: {
+                                        title: 'JUL',
+                                        width: '2%'
+                                    },
+                                    AUG: {
+                                        title: 'AUG',
+                                        width: '2%'
+                                    },
+                                    SEP: {
+                                        title: 'SEP',
+                                        width: '2%'
+                                    },
+                                    OCT: {
+                                        title: 'OCT',
+                                        width: '2%'
+                                    },
+                                    NOV: {
+                                        title: 'NOV',
+                                        width: '2%'
+                                    },
+                                    DEC: {
+                                        title: 'DEC',
+                                        width: '2%'
+                                    },
+                                    Total: {
+                                        title: 'Total',
+                                        width: '2%'
+                                    },
+                                },
+                                formCreated: function (event, data) {
+                                    if (data.formType == 'edit') {
+                                        data.form.find('input[name="Year"]').css({ 'background-color': '#e5e5e5' });
+                                        $('#Edit-Year').prop('readonly', true);
+                                    }
+                                    data.form.validationEngine();
+                                },
+                                formSubmitting: function (event, data) {
+                                    return data.form.validationEngine('validate');
+                                },
+                                formClosed: function (event, data) {
+                                    data.form.validationEngine('hide');
+                                    data.form.validationEngine('detach');
+                                }
+                            }, function (data) {
+                                data.childTable.jtable('load');
+                            });
+                        });
+                        return $img;
+                    }
+                },
+            },
+            toolbar: {
+                items: [{
+                    icon: '/Content/themes/base/images/add.png',
+                    text: 'Add Missing Employee',
+                    click: function () {
+                        window.location.href = "LeaveDetails/MissingEmployee";
+                    }
+                },
+                {
+                    icon: '/Content/themes/base/images/xls.png',
+                    text: 'Export',
+                    click: function () {
+                        window.location.href = "LeaveDetails/Export";
+                    }
+                }]
+            },
+            formCreated: function (event, data) {
+                data.form.validationEngine();
+            },
+            formSubmitting: function (event, data) {
+                return data.form.validationEngine('validate');
+            },
+            formClosed: function (event, data) {
+                data.form.validationEngine('hide');
+                data.form.validationEngine('detach');
+            }
+        });
+    });
+</script>
+
+<script>
+    function imgWindow(empcode,month,year) {
+        url = $('@Html.ActionLink("Timing", "TimingList")').attr('href');
+        url = url + "?EmpCode=" + empcode + "&Month=" + month + "&Year=" + year;
+        $("#dialog-edit").dialog("option", "title", "Timing Details-" + month + " EmpCode-" + empcode);
+        $("#dialog-edit").dialog('open');
+    }
+</script>

@@ -1,0 +1,505 @@
+﻿@using WebPayroll.Helper
+@{
+    ViewBag.Title = "Employee";
+}
+
+<div class="panel panel-info topmar-10">
+    <div class="panel-heading">
+        @Html.MyActionLink("<span class='fa fa-dashboard fa-1x'> Dashboard</span>", "Dashboard", "Index", "Home", null, new { @class = "btn btn-info btn-sm" })
+        <div class="btn-group dropdown">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Quick Link
+                <span class="caret"></span>
+                <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu">
+                <li>@Html.MyActionLink("<span class='fa fa-building fa-1x'> Branch</span>", "Branch", "Index", "Branch", null, new { @class = "btn btn-link btn-sm" })</li>
+                <li>@Html.MyActionLink("<span class='fa fa-list fa-1x'> Department</span>", "Department", "Index", "Department", null, new { @class = "btn btn-link btn-sm" })</li>
+                <li>@Html.MyActionLink("<span class='fa fa-tag fa-1x'> Designation</span>", "Designation", "Index", "Designation", null, new { @class = "btn btn-link btn-sm" })</li>
+                <li>@Html.MyActionLink("<span class='fa fa-user fa-1x'> Employee</span>", "Employee", "Index", "Employee", null, new { @class = "btn btn-link btn-sm" })</li>
+                <li>@Html.MyActionLink("<span class='fa fa-rupee fa-1x'> Salary Master</span>", "Salary Master", "Index", "SalaryMaster", null, new { @class = "btn btn-link btn-sm" })</li>
+            </ul>
+        </div>
+        @Html.DropDownList("branch", new SelectList((ViewBag.branch) as SelectList, "Value", "Text"), "Select Branch", new { @class = "search-box" })
+        <input type="text" class="search-box font" id="search" placeholder="Search by" />
+        @Html.DropDownList("SearchFields", new SelectList((ViewBag.SearchFields) as SelectList, "Value", "Text"), new { @class = "search-box" })
+        <i title="search" id="searchbtn" class="fa fa-search btn btn-info"></i>
+        @Html.MyActionLink("<span class='fa fa-external-link fa-1x'> Bulk KYC</span>", "Bulk KYC", "BulkKYC", "Employee", null, new { @class = "btn btn-info btn-sm" })
+        <input type="file" id="Uploaddox" multiple style="display:none" />
+        <input type="hidden" id="kycid"/>
+        <i title="Refresh" id="refreshbtn" class="fa fa-refresh fa-1x btn btn-link pull-right"></i>
+    </div>
+    <div class="panel-body">
+        <div id="table"></div>
+    </div>
+</div>
+
+
+@*Filtering*@
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+        $('#refreshbtn').click(function (e) {
+            $('#search').val('');
+            $('#table').jtable('load');
+        });
+
+        $("#branch").change(function (e) {
+            e.preventDefault();
+            $('#table').jtable('load', {
+                branch: $('#branch').val()
+            });
+        });
+
+        $('#search').bind('keyup', function (e) {
+            if (e.which == 13) {
+                $('#searchbtn').trigger('click');
+            }
+        });
+
+        $('#searchbtn').click(function (e) {
+            var id = $('#branch').val();
+            if (id == 0) {
+                alert("Select branch first!");
+                return;
+            }
+            $('#table').jtable('load', {
+                branch: $('#branch').val(), field: $('#SearchFields').val(), search: $('#search').val()
+            });
+        });
+
+        $('#BulkKYC').click(function (e) {
+            var url = "/Employee/BulkKYC";
+            window.open(url);
+            e.preventDefault();
+        });
+    });
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $('#table').jtable({
+            title: 'Employee Details',
+            paging: true,
+            pagesize: 3,
+            sorting: false,
+            defaultSorting: 'Name ASC',
+            actions: {
+                listAction: '@Url.Action("List")',
+                updateAction: '@Url.Action("Update")',
+                createAction: '@Url.Action("Create")'
+            },
+            fields: {
+                Id: {
+                    title: 'Id',
+                    width:'1%',
+                    key: true,
+                    create: false,
+                    edit: false,
+                    list: false
+                },
+                CompId: {
+                    title: 'Company',
+                    width: '2%',
+                    options: '@Url.Action("GetCompanyOptions", "Company")',
+                    edit: false,
+                    visibility: 'hidden'
+                },
+                BranchId: {
+                    title: 'Branch',
+                    width: '2%',
+                    options: '@Url.Action("GetBranchNameOptions", "Branch")',
+                    edit: false,
+                },
+                DeptId: {
+                    title: 'Department',
+                    width: '2%',
+                    options: '@Url.Action("GetDepartmentOptions", "Department")',
+                    visibility: 'hidden'
+                },
+                DesigId: {
+                    title: 'Designation',
+                    width: '2%',
+                    options: '@Url.Action("GetDesignationOptions", "Designation")',
+                    visibility: 'hidden'
+                },
+                EmpCode: {
+                    title: 'EmpCode',
+                    width: '1%'
+                },
+                Name: {
+                    title: 'Name',
+                    width: '4%'
+                },
+                Gender: {
+                    title: 'Gender',
+                    width: '1%',
+                    options: { "M": "Male", "F": "Female", "T": "Transgender" }
+                },
+                MarritalStatus: {
+                    title: 'MaritalStatus',
+                    width: '1%',
+                    options: { "M": "Married", "U": "Un-Married", "W": "Widow/Widower", "D": "Divorse" }
+                },
+                DOB: {
+                    title: 'DOB',
+                    width: '2%',
+                    type: 'date',
+                    display: function (data) {
+                        if (data.record.DOB != null)
+                            return moment(data.record.DOB).format('DD/MM/YYYY')
+                    },
+                },
+                FatherOrHusbandName: {
+                    title: 'FatherOrHusbandName',
+                    width: '2%',
+                    visibility: 'hidden'
+                },
+                ForHFlag: {
+                    title: 'F/H',
+                    width: '2%',
+                    options: { "F": "Father", "H": "Husband" },
+                    visibility: 'hidden'
+                },
+                UAN: {
+                    title: 'UAN',
+                    width: '2%'
+                },
+                ESIP: {
+                    title: 'ESIP',
+                    width: '2%'
+                },
+                DOJ: {
+                    title: 'DOJ',
+                    width: '2%',
+                    type: 'date',
+                    display: function (data) {
+                        if (data.record.DOJ != null)
+                            return moment(data.record.DOJ).format('DD/MM/YYYY')
+                    },
+                },
+                DOE: {
+                    title: 'DOE',
+                    width: '2%',
+                    type: 'date',
+                    visibility: 'hidden',
+                    create: false,
+                    display: function (data) {
+                        if (data.record.RegDate != null)
+                            return moment(data.record.DOE).format('DD/MM/YYYY')
+                    },
+                },
+                TotalYears: {
+                    title: 'TotalYears',
+                    width: '0.1%',
+                    create: false,
+                    edit: false,
+                    listClass: 'text-center'
+                },
+                TranType: {
+                    title: 'TranType',
+                    width: '0.1%',
+                    options: { "1": "BulkTransfer", "2": "Transfer", "3": "CHQ" },
+                },
+                StatuId: {
+                    title: 'StatuCode',
+                    width: '2%',
+                    options: '@Url.Action("GetStatutoryCodeOptions", "StatutoryCode")',
+                    listClass: 'text-center'
+                },
+                KYC: {
+                    title: '',
+                    width: '0.1%',
+                    sorting: false,
+                    create: false,
+                    edit: false,
+                    listClass: 'child-opener-image-column',
+                    display: function (data) {
+                        var $img = $('<i title="KYC" class="fa fa-file-text fa-1x pointer text-primary"/>');
+                        $img.click(function () {
+                            $('#table').jtable('openChildTable', $img.closest('tr'),
+                            {
+                                title: data.record.Name + " - KYC",
+                                paging: false,
+                                pagesize: 3,
+                                actions: {
+                                    listAction: '@Url.Action("GetKYC","Employee")?empid=' + data.record.Id,
+                                    createAction: '@Url.Action("AddKYC", "Employee")?empid=' + data.record.Id,
+                                    updateAction: '@Url.Action("UpdateKYC", "Employee")',
+                                },
+                                fields: {
+                                    Id: {
+                                        title: 'Id',
+                                        width: '1%',
+                                        key: true,
+                                        create: false,
+                                        edit: false,
+                                        list: false
+                                    },
+                                    DoxType: {
+                                        title: 'DoxType',
+                                        width: '4%',
+                                        options: '@Url.Action("GetKYCdoxtype", "Employee")',
+                                    },
+                                    DocumentNumber: {
+                                        title: 'DocumentNumber',
+                                        width: '4%',
+                                        display: function (data) {
+                                            var $img = $('<a title="Pan Card" class="child-opener-image pointer " src="">' + data.record.DocumentNumber + '</a>');
+                                            $img.click(function () {
+                                                var file = data.record.Id;
+                                                var url = "Upload/KYCDox/" + file + ".pdf";
+                                                window.open(url);
+                                            });
+                                            return $img
+                                        }
+                                    },
+                                    NameonDox: {
+                                        title: 'NameonDox',
+                                        width: '4%'
+                                    },
+                                    Other: {
+                                        title: 'Other',
+                                        width: '4%'
+                                    },
+                                    IssueDate: {
+                                        title: 'IssueDate',
+                                        width: '2%',
+                                        type: 'date',
+                                        display: function (data) {
+                                            if (data.record.IssueDate != null)
+                                                return moment(data.record.IssueDate).format('DD/MMM/YYYY')
+                                        },
+                                    },
+                                    Exipiry: {
+                                        title: 'Exipiry',
+                                        width: '2%',
+                                        type: 'date',
+                                        display: function (data) {
+                                            if (data.record.Exipiry != null)
+                                                return moment(data.record.Exipiry).format('DD/MMM/YYYY')
+                                        },
+                                    },
+                                    Place: {
+                                        title: 'PlaceOfIssue',
+                                        width: '4%'
+                                    },
+                                    Document: {
+                                        title: '',
+                                        width: '0.1%',
+                                        create: false,
+                                        edit: false,
+                                        display: function (data) {
+                                            var $img = $('<i title="Upload file" class="fa fa-upload fa-1x pointer text-primary"/>');
+                                            $img.click(function () {
+                                                $("#Uploaddox").trigger('click');
+                                                $("#kycid").val(data.record.Id);
+                                                return false;
+                                            });
+                                            return $img;
+                                        },
+                                    },
+                                },
+                                formCreated: function (event, data) {
+                                    $("#Edit-IssueDate").removeClass('hasDatepicker');
+                                    $("#Edit-IssueDate").datepicker({ yearRange: "-30:+0", changeMonth: true, changeYear: true, dateFormat: 'yy-mm-dd' });
+
+                                    $("#Edit-Exipiry").removeClass('hasDatepicker');
+                                    $("#Edit-Exipiry").datepicker({ yearRange: "-0:+30", changeMonth: true, changeYear: true, dateFormat: 'yy-mm-dd' });
+                                    data.form.validationEngine();
+                                },
+                                formSubmitting: function (event, data) {
+                                    return data.form.validationEngine('validate');
+                                },
+                                formClosed: function (event, data) {
+                                    data.form.validationEngine('hide');
+                                    data.form.validationEngine('detach');
+                                }
+                            }, function (data) {
+                                data.childTable.jtable('load');
+                            });
+                        });
+                        return $img;
+                    }
+                },
+
+                PastWorking: {
+                    title: '',
+                    width: '0.1%',
+                    sorting: false,
+                    create: false,
+                    edit: false,
+                    listClass: 'child-opener-image-column',
+                    display: function (data) {
+                        var $img = $('<i title="Past Working" class="fa fa-file-text fa-1x pointer text-primary"/>');
+                        $img.click(function () {
+                            $('#table').jtable('openChildTable', $img.closest('tr'),
+                            {
+                                title: data.record.Name + " - Past Working",
+                                paging: false,
+                                pagesize: 3,
+                                actions: {
+                                    listAction: '@Url.Action("GetPastWorking","Employee")?empid=' + data.record.Id,
+                                    createAction: '@Url.Action("AddPastWorking", "Employee")?empid=' + data.record.Id,
+                                    updateAction: '@Url.Action("UpdatePastWoring", "Employee")',
+                                },
+                                fields: {
+                                    Id: {
+                                        title: 'Id',
+                                        width: '1%',
+                                        key: true,
+                                        create: false,
+                                        edit: false,
+                                        list: false
+                                    },
+                                    CompanyName: {
+                                        title: 'CompanyName',
+                                        width: '4%'
+                                    },
+                                    DateFrom: {
+                                        title: 'DateFrom',
+                                        width: '2%',
+                                        type: 'date',
+                                        display: function (data) {
+                                            if (data.record.DateFrom != null)
+                                                return moment(data.record.DateFrom).format('DD/MMM/YYYY')
+                                        },
+                                    },
+                                    DateTo: {
+                                        title: 'DateTo',
+                                        width: '2%',
+                                        type: 'date',
+                                        display: function (data) {
+                                            if (data.record.DateTo != null)
+                                                return moment(data.record.DateTo).format('DD/MMM/YYYY')
+                                        },
+                                    },
+                                    Rejoin: {
+                                        title: 'Rejoin',
+                                        width: '4%',
+                                        options: { '1': 'No', '2': 'Yes'},
+                                        defaultValue: '1',
+                                    },
+                                    TotalYears: {
+                                        title: 'TotalYears',
+                                        width: '4%'
+                                    },
+                                    Comments: {
+                                        title: 'Comments',
+                                        width: '4%',
+                                        type:'textarea'
+                                    },
+                              
+                                },
+                                formCreated: function (event, data) {
+                                    $("#Edit-IssueDate").removeClass('hasDatepicker');
+                                    $("#Edit-IssueDate").datepicker({ yearRange: "-30:+0", changeMonth: true, changeYear: true, dateFormat: 'yy-mm-dd' });
+
+                                    $("#Edit-Exipiry").removeClass('hasDatepicker');
+                                    $("#Edit-Exipiry").datepicker({ yearRange: "-0:+30", changeMonth: true, changeYear: true, dateFormat: 'yy-mm-dd' });
+                                    data.form.validationEngine();
+                                },
+                                formSubmitting: function (event, data) {
+                                    return data.form.validationEngine('validate');
+                                },
+                                formClosed: function (event, data) {
+                                    data.form.validationEngine('hide');
+                                    data.form.validationEngine('detach');
+                                }
+                            }, function (data) {
+                                data.childTable.jtable('load');
+                            });
+                        });
+                        return $img;
+                    }
+                },
+
+                Status: {
+                    title: 'Status',
+                    width: '0.1%',
+                    options: { "1": "Working", "2": "Resigned", "3": "Temp" },
+                    display: function (data) {
+                        if (data.record.Status == 1)
+                            return "<div class='green'>" + 'Working' + "</div>";
+                        if (data.record.Status == 2)
+                            return "<div class='red'>" + 'Resigned' + "</div>";
+                        if (data.record.Status == 3)
+                            return "<div class='yellow'>" + 'Temp' + "</div>";
+                    },
+                },
+            },
+            toolbar: {
+                items: [{
+                    icon: '/Content/themes/base/images/bulk.png',
+                    text: 'Add Bulk',
+                    click: function () {
+                        window.location.href = "/Employee/BulkEmployee";
+                    }
+                },
+                {
+                    icon: '/Content/themes/base/images/details.png',
+                    text: 'Details',
+                    click: function () {
+                        window.location.href = "/Employee/EmployeeFullDetails";
+                    }
+                }]
+            },
+            formCreated: function (event, data) {
+                data.form.find('input[name="Name"]').addClass('validate[required]');
+
+                $("#Edit-DOB").removeClass('hasDatepicker');
+                $("#Edit-DOB").datepicker({ yearRange: "-58:-12", changeMonth: true, changeYear: true, dateFormat: 'yy-mm-dd' });
+
+                $("#Edit-DOJ").removeClass('hasDatepicker');
+                $("#Edit-DOJ").datepicker({ yearRange: "-58:+0", changeMonth: true, changeYear: true, dateFormat: 'yy-mm-dd' });
+
+                data.form.validationEngine();
+            },
+            formSubmitting: function (event, data) {
+                return data.form.validationEngine('validate');
+            },
+            formClosed: function (event, data) {
+                data.form.validationEngine('hide');
+                data.form.validationEngine('detach');
+            }
+        });
+        $('#table').jtable('load');
+    });
+</script>
+
+<script type="text/javascript">
+
+    $("#Uploaddox").change(function () {
+        $('#load').show();
+        var data = new FormData();
+        var files = $("#Uploaddox").get(0).files;
+        if (files.length > 0) {
+            for (i = 0; i < files.length; i++) {
+                data.append("MyImages"+i,files[i]);
+            }
+        }
+        else {
+            alert("Select File to upload");
+            return;
+        }
+        data.append("kycid", $("#kycid").val());
+        $.ajax({
+            url: "/Employee/UploadKycDox",
+            type: "POST",
+            processData: false,
+            contentType: false,
+            data: data,
+            success: function (response) {
+                //code after success
+                $('#load').hide();
+                alert(response);
+            },
+            error: function (er) {
+                alert(er);
+            }
+
+        });
+    });
+</script>

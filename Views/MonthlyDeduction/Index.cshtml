@@ -1,0 +1,201 @@
+﻿@using WebPayroll.Helper
+@{
+    ViewBag.Title = "Monthly Deduction";
+}
+
+<script src="~/Scripts/jtable/jquery.jtable.editinline.js"></script>
+
+<style>
+    input, select, textarea {
+        max-width: 180px;
+    }
+</style>
+
+<div class="panel panel-info topmar-10">
+    <div class="panel-heading">
+        @Html.MyActionLink("<span class='fa fa-dashboard fa-1x'> Dashboard</span>", "Dashboard", "Index", "Home", null, new { @class = "btn btn-info btn-sm" })
+        <div class="btn-group dropdown">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Quick Link
+                <span class="caret"></span>
+                <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu">
+                <li>@Html.MyActionLink("<span class='fa fa-user fa-1x'> Employee</span>", "Employee", "Index", "Employee", null, new { @class = "btn btn-link btn-sm" })</li>
+                <li>@Html.MyActionLink("<span class='fa fa-money fa-1x'> Loan Master</span>", "Loan Master", "Index", "LoanMaster", null, new { @class = "btn btn-link btn-sm " })</li>
+                <li>@Html.MyActionLink("<span class='fa fa-bar-chart fa-1x'> Loan Outstanding Report</span>", "Loan Outstanding Report", "LoanOutstandingReport", "LoanMaster", null, new { @class = "btn btn-link btn-sm" })</li>
+            </ul>
+        </div>
+
+        @Html.DropDownList("branch", new SelectList((ViewBag.branch) as SelectList, "Value", "Text"), "Select Branch", new { @class = "search-box" })
+        @Html.DropDownList("months", new SelectList((ViewBag.Months) as SelectList, "Value", "Text"), "Deduction Month", new { @class = "search-box" })
+
+        <button id="save" type="button" style="display:none" class="btn btn-success btn-sm">
+            <span class="fa fa-gear"></span> Process
+            <span id="load1" class="fa fa-spin fa-spinner"></span>
+        </button>
+
+        <div class="btn-group dropdown pull-right">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Quick Link
+                <span class="caret"></span>
+                <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu">
+                <li>@Html.MyActionLink("<span class='fa fa-money fa-1x'> Loan Master</span>", "Loan Master", "Index", "LoanMaster", null, new { @class = "btn btn-link btn-sm" })</li>
+                <li>@Html.MyActionLink("<span class='fa fa-bar-chart fa-1x'> Loan Outstanding Report</span>", "Loan Outstanding Report", "LoanOutstandingReport", "LoanMaster", null, new { @class = "btn btn-link btn-sm" })</li>
+            </ul>
+        </div>
+       
+    </div>
+    <div class="panel-body">
+        <div id="table"></div>
+    </div>
+</div>
+
+@*Filtering*@
+<script type="text/javascript">
+    $(document).ready(function () {
+        
+        $('#months').hide();
+
+        $("#branch").change(function (e) {
+            e.preventDefault();
+
+            var id = $('#branch').val();
+            if (id != "") {
+                $('#months').show();
+                $('#save').hide();
+            }
+            else {
+                $('#months').hide();
+                $('#months').val('');
+                $('#save').hide();
+            }
+            $('#table').jtable('load', {
+                branch: $('#branch').val()
+            });
+        });
+
+        $("#months").change(function (e) {
+
+            var month = $('#months').val();
+            if (month != "") {
+                $('#save').show();
+                $('#load1').hide();
+            }
+            else {
+                $('#save').hide();
+            }
+            e.preventDefault();
+            
+        });
+
+        $("#save").click(function (e) {
+            e.preventDefault();
+
+            var strconfirm = confirm("Are you sure you want to process?");
+            if (strconfirm == true) {
+                $('#load1').show();
+                var month = $("#months").val();
+                $.ajax({
+                    url: "/MonthlyDeduction/Process",
+                    type: "POST",
+                    datatype: 'JSON',
+                    data: { month: month},
+                    success: function (response) {
+                        //code after success
+                        $('#save').hide();
+                        $('#months').hide();
+                        $('#branch').val('')
+                        alert(response);
+                        $('#table').jtable('load');
+                    },
+                    error: function (er) {
+                        alert(er);
+                    }
+                });
+            }
+        });
+    });
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#table').jtable({
+            title: 'Monthly Deduction',
+            paging: true,
+            pagesize: 3,
+            sorting: false,
+            editinline: { enable: true },
+            defaultSorting: 'Name ASC',
+            actions: {
+                listAction: '@Url.Action("List")',
+                updateAction: '@Url.Action("Update")',
+            },
+            fields: {
+                Id: {
+                    title: 'Id',
+                    width:'1%',
+                    key: true,
+                    create: false,
+                    edit: false,
+                    list: false
+                },
+                Branch: {
+                    title: 'Branch',
+                    width: '0.5%',
+                    edit: false
+                },
+                EmpId: {
+                    title: 'Employee',
+                    width: '3%',
+                    options: '@Url.Action("GetEmployeeOptions", "Employee")',
+                },
+                LoanCode: {
+                    title: 'LoanCode',
+                    width: '1%',
+                    edit: false
+                },
+                Type: {
+                    title: 'Type',
+                    width: '1%',
+                    options: { "A": "Advance", "L": "Loan" },
+                    edit: false
+                },
+                CRAmount: {
+                    title: 'LoanAmount',
+                    width: '1%',
+                    edit: false
+                },
+                BalanceAmount: {
+                    title: 'Balance',
+                    width: '1%',
+                    edit: false
+                },
+                DednAmount: {
+                    title: 'DednAmount',
+                    width: '1%'
+                },
+                PaidBy: {
+                    title: 'PaidBy',
+                    width: '1%',
+                    options: { "S": "Salary", "B": "BankTransfer", "C": "Cash" },
+                    defaultValue: 'B',
+                },
+            },
+            formCreated: function (event, data) {
+                document.getElementById("Edit-EmpId").disabled = true;
+                data.form.validationEngine();
+            },
+            formSubmitting: function (event, data) {
+                return data.form.validationEngine('validate');
+            },
+            formClosed: function (event, data) {
+                data.form.validationEngine('hide');
+                data.form.validationEngine('detach');
+            }
+        });
+        
+    });
+</script>

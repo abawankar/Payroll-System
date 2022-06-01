@@ -1,0 +1,113 @@
+﻿@using WebPayroll.Helper
+@{
+    ViewBag.Title = "Company";
+}
+
+<div class="panel panel-info topmar-10">
+    <div class="panel-heading">
+        @Html.MyActionLink("<span class='fa fa-dashboard fa-1x'> Dashboard</span>", "Dashboard", "Index", "Home", null, new { @class = "btn btn-info btn-sm" })
+        <div class="btn-group dropdown">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Quick Link
+                <span class="caret"></span>
+                <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu">
+                <li>@Html.MyActionLink("<span class='fa fa-building fa-1x'> Branch</span>", "Branch", "Index", "Branch", null, new { @class = "btn btn-link btn-sm" })</li>
+                <li>@Html.MyActionLink("<span class='fa fa-list fa-1x'> Department</span>", "Department", "Index", "Department", null, new { @class = "btn btn-link btn-sm" })</li>
+                <li>@Html.MyActionLink("<span class='fa fa-tag fa-1x'> Designation</span>", "Designation", "Index", "Designation", null, new { @class = "btn btn-link btn-sm" })</li>
+                <li>@Html.MyActionLink("<span class='fa fa-user fa-1x'> Employee</span>", "Employee", "Index", "Employee", null, new { @class = "btn btn-link btn-sm" })</li>
+            </ul>
+        </div>
+    </div>
+    <div class="panel-body">
+        <div id="table"></div>
+    </div>
+</div>
+
+
+@*Filtering*@
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#comp").change(function (e) {
+            e.preventDefault();
+            $('#table').jtable('load', {
+                compid: $('#comp').val()
+            });
+        });
+    });
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $('#table').jtable({
+            title: 'Company',
+            paging: true,
+            pagesize: 3,
+            sorting: true,
+            defaultSorting: 'Name ASC',
+            actions: {
+                listAction: '@Url.Action("List")',
+                updateAction: '@Url.Action("Update")',
+                createAction: '@Url.Action("Create")'
+            },
+            fields: {
+                Id: {
+                    title: 'Id',
+                    width:'1%',
+                    key: true,
+                    create: false,
+                    edit: false,
+                    list: false
+                },
+                Code: {
+                    title: 'Code',
+                    width: '2%'
+                },
+                Name: {
+                    title: 'Name',
+                    width: '3%'
+                },
+                PAN: {
+                    title: 'PAN',
+                    width: '2%'
+                },
+                GST: {
+                    title: 'GST',
+                    width: '2%'
+                },
+                Address: {
+                    title: 'Address',
+                    width: '2%',
+                    type:'textarea',
+                    visibility:'hidden'
+                },
+                CIN: {
+                    title: 'CIN',
+                    width: '2%'
+                },
+                EstablishmentCode: {
+                    title: 'EstablishmentCode',
+                    width: '2%'
+                },
+                ESIRegistrationNumber: {
+                    title: 'ESIRegistrationNumber',
+                    width: '2%'
+                },
+            },
+            formCreated: function (event, data) {
+                data.form.find('input[name="Name"]').addClass('validate[required]');
+                data.form.validationEngine();
+            },
+            formSubmitting: function (event, data) {
+                return data.form.validationEngine('validate');
+            },
+            formClosed: function (event, data) {
+                data.form.validationEngine('hide');
+                data.form.validationEngine('detach');
+            }
+        });
+        $('#table').jtable('load');
+    });
+</script>

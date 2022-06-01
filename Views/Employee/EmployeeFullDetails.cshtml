@@ -1,0 +1,603 @@
+﻿@using WebPayroll.Helper
+@{
+    ViewBag.Title = "EmployeeFullDetails";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="panel panel-info topmar-10">
+    <div class="panel-heading">
+        @Html.MyActionLink("<span class='fa fa-dashboard fa-1x'> Dashboard</span>", "Dashboard", "Index", "Home", null, new { @class = "btn btn-info btn-sm" })
+       
+        @Html.DropDownList("branch", new SelectList((ViewBag.branch) as SelectList, "Value", "Text"), new { @class = "search-box" })
+        <input type="text" class="search-box font" id="search" placeholder="Search by" />
+        @Html.DropDownList("SearchFields", new SelectList((ViewBag.SearchFields) as SelectList, "Value", "Text"), new { @class = "search-box" })
+        <i title="search" id="searchbtn" class="fa fa-search btn btn-info" onclick="Details()"></i>
+        @Html.MyActionLink("<span class='fa fa-plus fa-1x'> Add Employee</span>", "Employee", "Index", "Employee", null, new { @class = "btn btn-link btn-sm" })
+        <i title="Refresh" id="refreshbtn" class="fa fa-refresh fa-1x btn btn-link pull-right"></i>
+    </div>
+    <div class="panel-body">
+        <div class="panel panel-default no-b-margin" id="empdetails">
+            <div class="panel-heading"> <strong>EMPLOYEE DETAILS  <label id="empCode"></label> </strong>  
+            <span id="load" class="fa fa-spin fa-spinner" style="display:none"></span> 
+            </div>
+            <div class="panel-body">
+                <div class="col-md-4 nolrpad">
+                    <div class="panel panel-default">
+                        <div class="panel-heading text-center"><span class="fa fa-vcard-o"></span> Basic Details</div>
+                        <div class="panel-body">
+                            <div class="col-sm-3"><img class="profile-img-card" height="100" width="100" src="/Content/themes/base/images/user.jpg" /></div>
+                            <div class="col-sm-9">
+                                <div class="row pad-5">
+                                    <div class="col-sm-2">Name:</div>
+                                    <div class="col-sm-10"><label id="empName"></label></div>
+                                </div>
+                                <div class="row pad-5">
+                                    <div class="col-sm-2">DOB:</div>
+                                    <div class="col-sm-10"><label id="empDOB"></label></div>
+                                </div>
+                                <div class="row pad-5">
+                                    <div class="col-sm-2">DOJ:</div>
+                                    <div class="col-sm-10">
+                                        <label id="empDOJ"></label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12">
+                                <div class="row pad-5">
+                                    <div class="col-sm-2">UAN:</div>
+                                    <div class="col-sm-4"><label id="uan"></label></div>
+                                    <div class="col-sm-2">ESI:</div>
+                                    <div class="col-sm-4"><label id="esip"></label></div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-12">
+                                <div class="row pad-5">
+                                    <div class="col-sm-12 no-b-margin border-b pad-5 text-center">
+                                        <span class="fa fa-file-pdf-o"></span> KYC
+                                    </div>
+                                </div>
+                                <div class="row pad-5">
+                                    <div class="col-sm-4">PAN:</div>
+                                    <div class="col-sm-8"><label id="pan"></label></div>
+                                </div>
+                                <div class="row pad-5">
+                                    <div class="col-sm-4">Aadhaar:</div>
+                                    <div class="col-sm-8"><label id="aadhar"></label></div>
+                                </div>
+                                <div class="row pad-5">
+                                    <div class="col-sm-4">BankAccount:</div>
+                                    <div class="col-sm-4"><label id="account"></label></div>
+                                    <div class="col-sm-4"><label id="ifsc"></label></div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="panel panel-default">
+                        <div class="panel-heading text-center"><span class="fa fa-inr"></span> Current Salary</div>
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-sm-4">Basic</div>
+                                <div class="col-sm-8 text-right"><label id="basic"></label></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">HRA</div>
+                                <div class="col-sm-8 text-right"><label id="hra"></label></div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-sm-4">EduAllowance</div>
+                                <div class="col-sm-8 text-right"><label id="EduAllowance"></label></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">TelephoneReimb</div>
+                                <div class="col-sm-8 text-right"><label id="TelephoneReimb"></label></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">SatutoryBonus</div>
+                                <div class="col-sm-8 text-right"><label id="SatutoryBonus"></label></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">CarRunningReimb</div>
+                                <div class="col-sm-8 text-right"><label id="CarRunningReimb"></label></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">OtherAllowance</div>
+                                <div class="col-sm-8 text-right"><label id="OtherAllowance"></label></div>
+                            </div>
+
+
+                            <div class="row">
+                                <div class="col-sm-4">Conveyance</div>
+                                <div class="col-sm-8 text-right"><label id="Conveyance"></label></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">Medical</div>
+                                <div class="col-sm-8 text-right"><label id="medical"></label></div>
+                            </div>
+                            <div class="row text-primary">
+                                <div class="col-sm-5">Gross Salary</div>
+                                <div class="col-sm-7 text-right"><label id="gross"></label></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">PF</div>
+                                <div class="col-sm-8 text-right"><label id="pf"></label></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">VPF</div>
+                                <div class="col-sm-8 text-right"><label id="vpf"></label></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">ESI</div>
+                                <div class="col-sm-8 text-right"><label id="esi"></label></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">TDS</div>
+                                <div class="col-sm-8 text-right"><label id="tds"></label></div>
+                            </div>
+                        </div>
+                        <div class="panel-footer">
+                            <div class="row text-primary">
+                                <div class="col-sm-4">Net Salary</div>
+                                <div class="col-sm-8 text-right"><label id="netsalary"></label></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-5 nolrpad">
+                    <div id="table"></div>
+                    <div id="ptable" class="pt-5"></div>
+                </div>
+
+                <div class="col-md-12 nolrpad nomargin">
+                    <div id="ltable"></div>
+                    <div id="dialog-edit" class="p-0 m-0" style="display: none"> </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    $('#search').bind('keyup', function (e) {
+        if (e.which == 13) {
+            
+            $('#searchbtn').trigger('click');
+            $('#empdetails').show();
+        }
+    });
+
+    function Details() {
+        var b = $("#branch").val();
+        var s = $("#search").val();
+        var SF = $("#SearchFields").val();
+        var empid = 0;
+        $('#load').show();
+
+    $.get("/Employee/GetDetails", { b: b,s:s,SF:SF }, function (data) {
+        if (data != null) {
+            empid = data.Id;
+            document.getElementById("empCode").innerText = "- " +  data.EmpCode;
+            document.getElementById("empName").innerText = data.Name;
+            document.getElementById("empDOB").innerText = JsDate(data.DOB, "dd/mm/yy");
+            document.getElementById("empDOJ").innerText = JsDate(data.DOJ, "dd/mm/yy") + " Total Years: " + data.TotalYears;
+            document.getElementById("uan").innerText = data.UAN
+            document.getElementById("esip").innerText = data.ESIP
+
+            document.getElementById("pan").innerText = "";
+            document.getElementById("aadhar").innerText = "";
+            document.getElementById("account").innerText = "";
+            document.getElementById("ifsc").innerText = "";
+            
+            $('#table').jtable('load', {
+                empid: empid
+            });
+            $('#ptable').jtable('load', {
+                empid: empid
+            });
+            $('#ltable').jtable('load', {
+                id: empid
+            });
+
+            $.each(data.KYC, function (index, value) {
+                if (value.DoxType == "P") {
+                    document.getElementById("pan").innerText = value.DocumentNumber;
+                }
+                if (value.DoxType == "A") {
+                    document.getElementById("aadhar").innerText = value.DocumentNumber;
+                }
+                if (value.DoxType == "B") {
+                    document.getElementById("account").innerText = value.DocumentNumber;
+                    document.getElementById("ifsc").innerText = value.Other;
+                }
+            });
+        }
+    });
+
+    $.get("/SalaryMaster/GetDetails", { b: b, s: s, SF: SF }, function (data) {
+        if (data != null) {
+            document.getElementById("basic").innerText = addCommas(data.Basic);
+            document.getElementById("hra").innerText = addCommas(data.HRA);
+            document.getElementById("Conveyance").innerText = addCommas(data.Conveyance);
+            document.getElementById("medical").innerText = addCommas(data.Medical);
+            document.getElementById("gross").innerText = addCommas(data.GrossSalary);
+
+            document.getElementById("EduAllowance").innerText = addCommas(data.EduAllowance);
+            document.getElementById("TelephoneReimb").innerText = addCommas(data.TelephoneReimb);
+            document.getElementById("SatutoryBonus").innerText = addCommas(data.SatutoryBonus);
+            document.getElementById("CarRunningReimb").innerText = addCommas(data.CarRunningReimb);
+            document.getElementById("OtherAllowance").innerText = addCommas(data.OtherAllowance);
+
+            document.getElementById("pf").innerText = "- "+ addCommas(data.PF);
+            document.getElementById("vpf").innerText = "- " +  addCommas(data.VPF);
+            document.getElementById("esi").innerText = "- " + addCommas(data.ESI);
+            document.getElementById("tds").innerText = "- " + addCommas(data.TDS);
+
+            document.getElementById("netsalary").innerText = addCommas(data.NetSalary);
+            $('#load').hide();
+        }
+    });
+   
+    }
+
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $('#table').jtable({
+            title: 'Monthly Salary Details',
+            paging: true,
+            pagesize: 3,
+            sorting: false,
+            pageList: 'minimal',
+            pageSizeChangeArea:false,
+            defaultSorting: 'Name ASC',
+            actions: {
+                listAction: '@Url.Action("EmployeeSalary","MonthlySalaryMaster")',
+            },
+            fields: {
+                Id: {
+                    title: 'Id',
+                    width:'1%',
+                    key: true,
+                    create: false,
+                    edit: false,
+                    list: false
+                },
+                MonthYear: {
+                    title: 'MonthYear',
+                    width: '1%',
+                },
+                GrossSalary: {
+                    title: 'GrossSalary',
+                    width: '1%',
+                    listClass:'text-right'
+                },
+                NetDedn: {
+                    title: 'NetDeduction',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                NetSalary: {
+                    title: 'NetSalary',
+                    width: '1%',
+                    listClass: 'text-right'
+                },
+                PaidDays: {
+                    title: 'PaidDays',
+                    width: '0.1%',
+                    listClass: 'text-right'
+                },
+                PaySlip: {
+                    title: 'PaySlip',
+                    width: '0.1%',
+                    listClass: 'text-center',
+                    display: function (data) {
+                        var $img = $('<i title="Genrate Salary Slip" class="fa fa-file-pdf-o fa-2x pointer redico"/>');
+                        $img.click(function () {
+                            url = "/MonthlySalaryMaster/GenratePaySlip?id=" + data.record.Id;
+                            window.open(url);
+                        });
+                        return $img;
+                    }
+                },
+            },
+        });
+    });
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $('#ptable').jtable({
+            title: 'Past Salary Details',
+            paging: true,
+            pagesize: 3,
+            sorting: false,
+            pageList: 'minimal',
+            pageSizeChangeArea:false,
+            defaultSorting: 'Name ASC',
+            actions: {
+                listAction: '@Url.Action("EmployeePastSalary", "SalaryMaster")',
+            },
+            fields: {
+                Id: {
+                    title: 'Id',
+                    width:'1%',
+                    key: true,
+                    create: false,
+                    edit: false,
+                    list: false
+                },
+                MonthYear: {
+                    title: 'MonthYear',
+                },
+                Basic: {
+                    title: 'Basic',
+                    listClass:'text-right'
+                },
+                HRA: {
+                    title: 'HRA',
+                    listClass: 'text-right'
+                },
+                Conveyance: {
+                    title: 'Conveyance',
+                    listClass: 'text-right'
+                },
+                Medical: {
+                    title: 'Medical',
+                    listClass: 'text-right'
+                },
+                GrossSalary: {
+                    title: 'GrossSalary',
+                    listClass: 'text-right'
+                },
+            },
+        });
+    });
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        //Dialog form
+        $("#dialog-edit").dialog({
+            title: 'In/Out Timings',
+            autoOpen: false,
+            resizable: false,
+            width: 1250,
+            show: { effect: 'drop', direction: "up" },
+            modal: true,
+            draggable: true,
+            open: function (event, ui) {
+                $(".ui-dialog-titlebar-close").show();
+                $(this).load(url);
+            },
+            buttons: {
+                "Cancel": function () {
+                    $(this).dialog("close");
+                },
+            }
+        });
+        //End dialog form
+
+        $('#ltable').jtable({
+            title: 'Employee Leave Details',
+            paging: true,
+            pagesize: 3,
+            sorting: false,
+            pageList: 'minimal',
+            pageSizeChangeArea:false,
+            defaultSorting: 'Name ASC',
+            actions: {
+                listAction: '@Url.Action("GetEmpLeaveDetails", "LeaveDetails","LMS")',
+            },
+            fields: {
+                Id: {
+                    title: 'Id',
+                    width: '1%',
+                    key: true,
+                    create: false,
+                    edit: false,
+                    list: false
+                },
+                Year: {
+                    title: 'Year',
+                    width: '2%'
+                },
+                PaidLeave: {
+                    title: 'PaidLeave',
+                    width: '2%',
+                },
+                Extra: {
+                    title: 'Extra',
+                    width: '2%'
+                },
+                UnPaid: {
+                    title: 'UnPaid',
+                    width: '2%'
+                },
+                JAN: {
+                    title: 'JAN',
+                    width: '2%',
+                    display: function (time) {
+                        var $img = $('<div class="grey" >' + time.record.JAN + '</div>');
+                        $img.click(function () {
+                            imgWindow(time.record.EmpId, 1, time.record.Year)
+                            return false;
+                        });
+                        return $img;
+                    }
+                },
+                FEB: {
+                    title: 'FEB',
+                    width: '2%',
+                    display: function (time) {
+                        var $img = $('<div class="grey" >' + time.record.FEB + '</div>');
+                        $img.click(function () {
+                            imgWindow(time.record.EmpId, 2, time.record.Year)
+                            return false;
+                        });
+                        return $img;
+                    }
+                },
+                MAR: {
+                    title: 'MAR',
+                    width: '2%',
+                    display: function (time) {
+                        var $img = $('<div class="grey" >' + time.record.MAR + '</div>');
+                        $img.click(function () {
+                            imgWindow(time.record.EmpId, 3, time.record.Year)
+                            return false;
+                        });
+                        return $img;
+                    }
+                },
+                APR: {
+                    title: 'APR',
+                    width: '2%',
+                    display: function (time) {
+                        var $img = $('<div class="grey" >' + time.record.APR + '</div>');
+                        $img.click(function () {
+                            imgWindow(time.record.EmpId, 4, time.record.Year)
+                            return false;
+                        });
+                        return $img;
+                    }
+                },
+                MAY: {
+                    title: 'MAY',
+                    width: '2%',
+                    display: function (time) {
+                        var $img = $('<div class="grey" >' + time.record.MAY + '</div>');
+                        $img.click(function () {
+                            imgWindow(time.record.EmpId, 5, time.record.Year)
+                            return false;
+                        });
+                        return $img;
+                    }
+                },
+                JUN: {
+                    title: 'JUN',
+                    width: '2%',
+                    display: function (time) {
+                        var $img = $('<div class="grey" >' + time.record.JUN + '</div>');
+                        $img.click(function () {
+                            imgWindow(time.record.EmpId, 6, time.record.Year)
+                            return false;
+                        });
+                        return $img;
+                    }
+                },
+                JUL: {
+                    title: 'JUL',
+                    width: '2%',
+                    display: function (time) {
+                        var $img = $('<div class="grey" >' + time.record.JUL + '</div>');
+                        $img.click(function () {
+                            imgWindow(time.record.EmpId, 7, time.record.Year)
+                            return false;
+                        });
+                        return $img;
+                    }
+                },
+                AUG: {
+                    title: 'AUG',
+                    width: '2%',
+                    display: function (time) {
+                        var $img = $('<div class="grey" >' + time.record.AUG + '</div>');
+                        $img.click(function () {
+                            imgWindow(time.record.EmpId, 8, time.record.Year)
+                            return false;
+                        });
+                        return $img;
+                    }
+                },
+                SEP: {
+                    title: 'SEP',
+                    width: '2%',
+                    display: function (time) {
+                        var $img = $('<div class="grey" >' + time.record.SEP + '</div>');
+                        $img.click(function () {
+                            imgWindow(time.record.EmpId, 9, time.record.Year)
+                            return false;
+                        });
+                        return $img;
+                    }
+                },
+                OCT: {
+                    title: 'OCT',
+                    width: '2%',
+                    display: function (time) {
+                        var $img = $('<div class="grey" >' + time.record.OCT + '</div>');
+                        $img.click(function () {
+                            imgWindow(time.record.EmpId, 10, time.record.Year)
+                            return false;
+                        });
+                        return $img;
+                    }
+                },
+                NOV: {
+                    title: 'NOV',
+                    width: '2%',
+                    display: function (time) {
+                        var $img = $('<div class="grey" >' + time.record.NOV + '</div>');
+                        $img.click(function () {
+                            imgWindow(time.record.EmpId, 11, time.record.Year)
+                            return false;
+                        });
+                        return $img;
+                    }
+                },
+                DEC: {
+                    title: 'DEC',
+                    width: '2%',
+                    display: function (time) {
+                        var $img = $('<div class="grey" >' + time.record.DEC + '</div>');
+                        $img.click(function () {
+                            imgWindow(time.record.EmpId, 12, time.record.Year)
+                            return false;
+                        });
+                        return $img;
+                    }
+                },
+                Total: {
+                    title: 'Total',
+                    width: '2%'
+                },
+                Balance: {
+                    title: 'Balance',
+                    width: '0.1%',
+                    display: function (data) {
+                        var x = data.record.Balance;
+                        if (x >= 0) {
+                            return "<div class='green'>" + x + "</div>";
+                        }
+                        else {
+                            return "<div class='red'>" + x + "</div>";
+                        }
+                    }
+                },
+
+            },
+        });
+    });
+</script>
+
+<script>
+    function imgWindow(empcode,month,year) {
+        url = $('@Html.ActionLink("TimingList","TimingList")').attr('href');
+        url = url + "?EmpCode=" + empcode + "&Month=" + month + "&Year=" + year;
+        $("#dialog-edit").dialog("option", "title", "Timing Details-" + month + " EmpCode-" + empcode);
+        $("#dialog-edit").dialog('open');
+    }
+</script>
+
+

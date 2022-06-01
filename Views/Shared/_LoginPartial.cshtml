@@ -1,0 +1,38 @@
+﻿@using WebPayroll.Models.Admin
+@using WebPayroll.Helper
+@using Microsoft.AspNet.Identity
+@if (Request.IsAuthenticated)
+{
+    using (Html.BeginForm("LogOff", "Account", new { area = string.Empty }, FormMethod.Post, new { id = "logoutForm", @class = "navbar-right" }))
+    {
+        @Html.AntiForgeryToken()
+
+        <ul class="nav navbar-nav navbar-right">
+            <li>
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                    <span class="fa fa-user fa-1x"> @User.Identity.GetFullName()</span> <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu">
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <li>@Html.MyActionLink("<span class='fa fa-user fa-1x'></span> Application User", " Application User", "Index", "AppsUser", null,null)</li>
+                    }
+                    <li>@Html.MyActionLink("<span class='fa fa-key'></span> Change Password", "Change password", "ChangePassword", "Manage", null, null)</li>
+                    <li><a href="javascript:document.getElementById('logoutForm').submit()"> <span class="fa fa-power-off"></span> Log off</a></li>
+                </ul>
+            </li>
+        </ul>
+    }
+}
+else
+{
+    <ul class="nav navbar-nav navbar-right">
+        <li>@Html.MyActionLink("<span class='fa fa-lock fa-1x'> Login</span>", " Log in", "Login", "Account", null, null)</li>
+    </ul>
+}
+
+<script>
+    $(document).ready(function () {
+        $('.dropdown-toggle').dropdown();
+    });
+</script>
